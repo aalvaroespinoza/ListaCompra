@@ -66,11 +66,11 @@ export function useShoppingList(householdId: string | undefined) {
           queryClient.setQueryData<ShoppingItem[]>(queryKey, (oldItems = []) => {
             if (payload.eventType === 'INSERT') {
               const newItem = payload.new as ShoppingItem;
-              // Evitar duplicados usando client_id si está presente, o fallback a id
-              if (newItem.client_id) {
-                if (oldItems.some(item => item.client_id === newItem.client_id)) return oldItems;
-              } else {
-                if (oldItems.some(item => item.id === newItem.id)) return oldItems;
+              const exists = oldItems.findIndex(item => item.id === newItem.id);
+              if (exists !== -1) {
+                const newItems = [...oldItems];
+                newItems[exists] = newItem;
+                return newItems;
               }
               return [newItem, ...oldItems];
             }
@@ -80,9 +80,11 @@ export function useShoppingList(householdId: string | undefined) {
               if (updatedItem.deleted_at) {
                 return oldItems.filter(item => item.id !== updatedItem.id);
               }
-              const exists = oldItems.some(item => item.id === updatedItem.id);
-              if (exists) {
-                return oldItems.map(item => item.id === updatedItem.id ? updatedItem : item);
+              const exists = oldItems.findIndex(item => item.id === updatedItem.id);
+              if (exists !== -1) {
+                const newItems = [...oldItems];
+                newItems[exists] = updatedItem;
+                return newItems;
               } else {
                 // Si fue restaurado y no estaba en caché
                 const newArr = [updatedItem, ...oldItems];
@@ -120,30 +122,28 @@ export function useShoppingList(householdId: string | undefined) {
     onMutate: async (newItem) => {
       await queryClient.cancelQueries({ queryKey });
       const previousItems = queryClient.getQueryData<ShoppingItem[]>(queryKey);
-      const tempId = 'temp-' + Date.now();
-      const clientId = crypto.randomUUID();
       
-      // Asegurar que pasamos el client_id a Supabase para la inserción
-      newItem.client_id = clientId;
+      if (!newItem.id) {
+        newItem.id = crypto.randomUUID();
+      }
 
       const optimisticItem = { 
         ...newItem, 
-        id: tempId, 
-        status: 'pending', 
+        id: newItem.id, 
+        status: newItem.status || 'pending', 
         created_at: new Date().toISOString(),
-        client_id: clientId
+        updated_at: new Date().toISOString(),
       } as ShoppingItem;
       
       queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => [
         optimisticItem,
         ...(old || [])
       ]);
-      return { previousItems, tempId };
+      return { previousItems, id: newItem.id };
     },
     onSuccess: (realItem, variables, context) => {
-      // Reemplazamos el ID temporal por el UUID real devuelto por la DB
       queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => 
-        (old || []).map(item => item.id === context?.tempId ? realItem : item)
+        (old || []).map(item => item.id === context?.id ? realItem : item)
       );
     },
     onError: (err, newItem, context) => {
