@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { db } from '@/lib/db';
+import { shoppingListRepository } from '@/repositories/shopping-list-repository';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -68,21 +69,14 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         
         for (const op of operations) {
           try {
-            if (op.action === 'insert') {
+            let data: { conflict?: boolean } | null = null;
+            if (op.action === 'insert' && op.table === 'shopping_items') {
               const payload = op.payload as Database['public']['Tables']['shopping_items']['Insert'];
-              const { error } = await supabase.from(op.table as "shopping_items").insert(payload);
-              if (error) throw error;
+              await shoppingListRepository.syncInsert(payload);
             } else if (op.action === 'update' && op.table === 'shopping_items') {
-              // Usar RPC seguro
+              // Usar RPC seguro a través del repositorio
               const payload = op.payload as { id: string; quantity?: number; status?: string; last_known_updated_at?: string };
-              const { data, error } = await supabase.rpc('update_shopping_item_safe', {
-                p_id: payload.id,
-                p_quantity: payload.quantity,
-                p_status: payload.status,
-                p_last_known_updated_at: payload.last_known_updated_at || op.timestamp
-              });
-              
-              if (error) throw error;
+              data = await shoppingListRepository.syncUpdateSafe(payload, op.timestamp);
               
               // Chequear conflicto
               if (data?.conflict) {
