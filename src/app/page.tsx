@@ -10,6 +10,8 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { motion } from "framer-motion";
 import { ShoppingList } from "@/features/shopping-list/components/ShoppingList";
+import { db } from "@/lib/db";
+import { toast } from "sonner";
 
 export default function HomeWireframe() {
   const [activeTab, setActiveTab] = useState("list");
@@ -120,12 +122,37 @@ export default function HomeWireframe() {
           householdId={currentProfile.household_id} 
           userId={currentProfile.id} 
         />
+      ) : activeTab === "settings" ? (
+        <div className="flex flex-col items-center justify-center p-6 space-y-6">
+          <div className="bg-surface rounded-3xl p-6 shadow-sm border border-border/50 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4 text-text-primary">Zona de Peligro</h3>
+            <p className="text-sm text-text-secondary mb-6">
+              Esto borrará tu caché local offline y los ítems pendientes de sincronizar.
+            </p>
+            <button 
+              onClick={async () => {
+                try {
+                  await db.delete();
+                  localStorage.clear();
+                  toast.success("Base de datos local vaciada", {
+                    description: "Recargando aplicación..."
+                  });
+                  setTimeout(() => window.location.reload(), 1500);
+                } catch (e) {
+                  toast.error("Error al vaciar DB local");
+                }
+              }}
+              className="w-full py-3 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl font-medium transition-colors"
+            >
+              Vaciar Caché Local
+            </button>
+          </div>
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center p-12 text-center text-text-tertiary h-64">
           <div className="bg-surface rounded-full p-4 shadow-sm mb-4">
             {activeTab === "history" && <Clock size={32} className="opacity-50" />}
             {activeTab === "frequent" && <Star size={32} className="opacity-50" />}
-            {activeTab === "settings" && <Settings size={32} className="opacity-50" />}
           </div>
           <p className="text-lg font-medium text-text-secondary">Próximamente</p>
         </div>
