@@ -14,19 +14,6 @@ interface QuickInputProps {
 export function QuickInput({ householdId, onAdd }: QuickInputProps) {
   const [value, setValue] = useState("");
   const { data: frequentProducts = [] } = useFrequentProducts(householdId);
-  const [suggestions, setSuggestions] = useState<typeof frequentProducts>([]);
-
-  // Autocompletado: filtra los productos frecuentes según lo escrito
-  useEffect(() => {
-    if (value.trim().length > 0) {
-      const filtered = frequentProducts.filter(p => 
-        p.name.toLowerCase().includes(value.trim().toLowerCase())
-      );
-      setSuggestions(filtered);
-    } else {
-      setSuggestions([]); // Si está vacío, se muestran las habituales
-    }
-  }, [value, frequentProducts]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +29,9 @@ export function QuickInput({ householdId, onAdd }: QuickInputProps) {
   };
 
   // Mostrar autocompletado si hay texto, si no, mostrar los más habituales (max 5)
-  const displayPills = value.trim().length > 0 ? suggestions : frequentProducts.slice(0, 5);
+  const displayPills = value.trim().length > 0 
+    ? frequentProducts.filter(p => p.name.toLowerCase().includes(value.trim().toLowerCase()))
+    : frequentProducts.slice(0, 5);
 
   return (
     <div 
