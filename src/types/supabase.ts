@@ -74,6 +74,7 @@ export interface Database {
           updated_at: string;
           purchased_at: string | null;
           deleted_at: string | null;
+          client_id: string | null;
         };
         Insert: {
           id?: string;
@@ -90,6 +91,7 @@ export interface Database {
           updated_at?: string;
           purchased_at?: string | null;
           deleted_at?: string | null;
+          client_id?: string | null;
         };
         Update: {
           id?: string;
@@ -106,6 +108,7 @@ export interface Database {
           updated_at?: string;
           purchased_at?: string | null;
           deleted_at?: string | null;
+          client_id?: string | null;
         };
         Relationships: [];
       };

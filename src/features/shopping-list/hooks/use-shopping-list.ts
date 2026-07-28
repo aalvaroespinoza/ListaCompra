@@ -21,6 +21,7 @@ export type ShoppingItem = {
   updated_at: string;
   purchased_at: string | null;
   deleted_at: string | null;
+  client_id?: string | null;
 };
 
 export function useShoppingList(householdId: string | undefined) {
@@ -65,8 +66,12 @@ export function useShoppingList(householdId: string | undefined) {
           queryClient.setQueryData<ShoppingItem[]>(queryKey, (oldItems = []) => {
             if (payload.eventType === 'INSERT') {
               const newItem = payload.new as ShoppingItem;
-              // Evitar duplicados si la mutación optimista local ya lo agregó (o fue reemplazado)
-              if (oldItems.some(item => item.id === newItem.id)) return oldItems;
+              // Evitar duplicados usando client_id si está presente, o fallback a id
+              if (newItem.client_id) {
+                if (oldItems.some(item => item.client_id === newItem.client_id)) return oldItems;
+              } else {
+                if (oldItems.some(item => item.id === newItem.id)) return oldItems;
+              }
               return [newItem, ...oldItems];
             }
             if (payload.eventType === 'UPDATE') {
@@ -117,11 +122,17 @@ export function useShoppingList(householdId: string | undefined) {
       await queryClient.cancelQueries({ queryKey });
       const previousItems = queryClient.getQueryData<ShoppingItem[]>(queryKey);
       const tempId = 'temp-' + Date.now();
+      const clientId = crypto.randomUUID();
+      
+      // Asegurar que pasamos el client_id a Supabase para la inserción
+      newItem.client_id = clientId;
+
       const optimisticItem = { 
         ...newItem, 
         id: tempId, 
         status: 'pending', 
-        created_at: new Date().toISOString() 
+        created_at: new Date().toISOString(),
+        client_id: clientId
       } as ShoppingItem;
       
       queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => [
