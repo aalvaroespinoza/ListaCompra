@@ -10,9 +10,7 @@ import { useFrequentProducts } from "../hooks/use-frequent-products";
 import { CATEGORIES, CategoryType, guessCategoryFromName } from "../constants";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { StatsRow } from "@/components/shared/StatsRow";
-import { SearchInput } from "@/components/ui/SearchInput";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
+
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 interface ShoppingListProps {
@@ -26,7 +24,6 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   const { availableProfiles } = useCurrentProfile();
 
   const [search, setSearch] = useState("");
-  const [conflictProduct, setConflictProduct] = useState<{name: string, category: string, existingItem: ShoppingItemType} | null>(null);
   const [isGridOpen, setIsGridOpen] = useState(false);
 
   // Filtrado inteligente de chips frecuentes basado en lo que el usuario escribe
@@ -39,6 +36,10 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   }, [search, frequentProducts]);
 
   const handleAdd = async (name: string, category: string) => {
+    if (!name.trim()) {
+      toast.error("El nombre no puede estar vacío");
+      return;
+    }
     try {
       await addItem({
         household_id: householdId,
@@ -48,11 +49,22 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
         quantity: 1,
         status: 'pending'
       });
-      toast.success(`Agregado: ${name}`);
+      toast.success(navigator.onLine ? `Agregado: ${name}` : `(Offline) Guardado: ${name}`);
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
       setSearch("");
-    } catch {
-      toast.error("Error al agregar el producto");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al agregar el producto");
+    }
+  };
+
+  const handleIncreaseQuantity = async (existingItem: ShoppingItemType) => {
+    try {
+      await updateItem({ id: existingItem.id, updates: { quantity: (existingItem.quantity || 1) + 1 } });
+      toast.success(navigator.onLine ? `+1 a ${existingItem.name}` : `(Offline) +1 a ${existingItem.name}`);
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
+      setSearch("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al aumentar cantidad");
     }
   };
 
@@ -61,53 +73,39 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
     const existingPending = items.find(i => i.status === 'pending' && i.name.toLowerCase() === name.trim().toLowerCase());
     
     if (existingPending) {
-      setConflictProduct({ name: name.trim(), category, existingItem: existingPending });
+      handleIncreaseQuantity(existingPending);
     } else {
       handleAdd(name.trim(), category);
     }
-  };
-
-  const handleIncreaseQuantity = async () => {
-    if (!conflictProduct) return;
-    const { existingItem } = conflictProduct;
-    try {
-      await updateItem({ id: existingItem.id, updates: { quantity: (existingItem.quantity || 1) + 1 } });
-      toast.success(`Cantidad aumentada: ${conflictProduct.name}`);
-      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
-    } catch {
-      toast.error("Error al actualizar");
-    }
-    setConflictProduct(null);
-    setSearch("");
   };
 
   const handleUpdate = useCallback(async (id: string, updates: Partial<ShoppingItemType>) => {
     try {
       await updateItem({ id, updates });
       if (updates.status === 'completed') {
+         toast.success(navigator.onLine ? "Marcado como comprado" : "(Offline) Comprado");
          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([30, 50, 30]);
+      } else if (updates.quantity) {
+         // No toast para cantidad simple a menos que falle
       }
-    } catch {
-      toast.error("Error al actualizar");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar el producto");
     }
   }, [updateItem]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteItem(id);
-      toast.info("Producto eliminado");
-    } catch {
-      toast.error("Error al eliminar");
+      toast.info(navigator.onLine ? "Producto eliminado" : "(Offline) Producto eliminado");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar");
     }
   }, [deleteItem]);
 
   const pendingItems = useMemo(() => items.filter(i => i.status === 'pending'), [items]);
   const completedItems = useMemo(() => items.filter(i => i.status === 'completed'), [items]);
 
-  const filteredProducts = useMemo(() => {
-    if (!search.trim()) return frequentProducts;
-    return frequentProducts.filter(p => p.name.toLowerCase().includes(search.trim().toLowerCase()));
-  }, [search, frequentProducts]);
+
 
   if (isLoading) {
     return (
@@ -316,37 +314,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
         )}
       </AnimatePresence>
 
-      <Modal 
-        isOpen={!!conflictProduct} 
-        onClose={() => setConflictProduct(null)}
-        title="⚠️ Producto ya en la lista"
-      >
-        <div className="flex flex-col space-y-6 pt-2">
-          <p className="text-text-secondary text-[16px] leading-relaxed">
-             Alguien ya añadió <strong>{conflictProduct?.name}</strong> a la lista para comprar hoy.
-          </p>
-          <div className="bg-surface-hover rounded-xl p-4 flex justify-between items-center border border-border/50">
-             <span className="font-medium text-text-primary">{conflictProduct?.name}</span>
-             <span className="text-text-tertiary text-sm">Cant: {conflictProduct?.existingItem?.quantity || 1}</span>
-          </div>
-          <div className="flex flex-col gap-3 pt-2">
-            <Button 
-              onClick={handleIncreaseQuantity}
-              variant="primary"
-              className="w-full rounded-2xl h-12 text-[16px] font-semibold"
-            >
-              ➕ Añadir otra unidad ({(conflictProduct?.existingItem?.quantity || 1) + 1})
-            </Button>
-            <Button 
-              onClick={() => setConflictProduct(null)}
-              variant="secondary"
-              className="w-full rounded-2xl h-12 text-[16px] font-semibold"
-            >
-              ❌ No, ya es suficiente
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      {/* Modal removido por UX rápida */}
     </div>
   );
 }
