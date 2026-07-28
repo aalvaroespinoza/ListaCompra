@@ -111,7 +111,6 @@ export function useShoppingList(householdId: string | undefined) {
     mutationFn: async (newItem: Database['public']['Tables']['shopping_items']['Insert']) => {
       const { data, error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error: Infiere 'never' internamente en el tipo generado
         .insert([newItem])
         .select()
         .single();
@@ -159,7 +158,6 @@ export function useShoppingList(householdId: string | undefined) {
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['shopping_items']['Update'] }) => {
       const { data, error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error: Infiere 'never'
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
@@ -187,7 +185,6 @@ export function useShoppingList(householdId: string | undefined) {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error: Infiere 'never'
         .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;

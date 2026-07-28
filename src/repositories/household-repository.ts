@@ -50,7 +50,7 @@ export class HouseholdRepository {
 
     // Extraemos los households
     const households = (members || [])
-        .map((m: HouseholdMember & { household: Household | Household[] | null }) => Array.isArray(m.household) ? m.household[0] : m.household)
+        .map((m: { household: Household | Household[] | null }) => Array.isArray(m.household) ? m.household[0] : m.household)
         .filter(Boolean);
 
     return households as Household[];

@@ -9,7 +9,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Profile {
+export type Profile = {
   id: string;
   household_id: string;
   display_name: string;
@@ -19,14 +19,14 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface Household {
+export type Household = {
   id: string;
   name: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface HouseholdMember {
+export type HouseholdMember = {
   id: string;
   household_id: string;
   user_id: string;
@@ -36,7 +36,7 @@ export interface HouseholdMember {
   updated_at: string;
 }
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
@@ -55,7 +55,22 @@ export interface Database {
         Row: HouseholdMember;
         Insert: Omit<HouseholdMember, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<HouseholdMember, 'id' | 'created_at' | 'updated_at'>>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "household_members_household_id_fkey";
+            columns: ["household_id"];
+            isOneToOne: false;
+            referencedRelation: "households";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "household_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       // ... otras tablas se generarán aquí en el futuro
       shopping_items: {
