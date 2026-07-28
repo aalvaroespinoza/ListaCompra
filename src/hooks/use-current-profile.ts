@@ -10,7 +10,6 @@ export type LocalProfile = Profile & {
 };
 
 const STORAGE_KEY = "listacompra_current_profile";
-const DEFAULT_HOUSEHOLD_ID = "e52fbd1e-58c5-43be-8e05-64c8c7ad4e42";
 
 /**
  * Hook para manejar la sesión local del usuario de forma persistente.
@@ -39,12 +38,11 @@ export function useCurrentProfile() {
   });
 
   const { data: availableProfiles = [], isLoading: isProfilesLoading } = useQuery({
-    queryKey: ['profiles', DEFAULT_HOUSEHOLD_ID],
+    queryKey: ['profiles'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('household_id', DEFAULT_HOUSEHOLD_ID);
+        .select('*');
         
       if (error) throw error;
       return data as LocalProfile[];
