@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
@@ -9,9 +9,11 @@ import { useShoppingList, ShoppingItem as ShoppingItemType } from "../hooks/use-
 import { useFrequentProducts } from "../hooks/use-frequent-products";
 import { CATEGORIES, CategoryType, guessCategoryFromName } from "../constants";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { StatsRow } from "@/components/shared/StatsRow";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 interface ShoppingListProps {
   householdId: string;
@@ -21,6 +23,7 @@ interface ShoppingListProps {
 export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   const { items, isLoading, addItem, updateItem, deleteItem } = useShoppingList(householdId);
   const { data: frequentProducts = [] } = useFrequentProducts(householdId);
+  const { availableProfiles } = useCurrentProfile();
 
   const [search, setSearch] = useState("");
   const [conflictProduct, setConflictProduct] = useState<{name: string, category: string, existingItem: ShoppingItemType} | null>(null);
@@ -68,7 +71,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
     setSearch("");
   };
 
-  const handleUpdate = async (id: string, updates: Partial<ShoppingItemType>) => {
+  const handleUpdate = useCallback(async (id: string, updates: Partial<ShoppingItemType>) => {
     try {
       await updateItem({ id, updates });
       if (updates.status === 'completed') {
@@ -77,19 +80,19 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
     } catch {
       toast.error("Error al actualizar");
     }
-  };
+  }, [updateItem]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteItem(id);
       toast.info("Producto eliminado");
     } catch {
       toast.error("Error al eliminar");
     }
-  };
+  }, [deleteItem]);
 
-  const pendingItems = items.filter(i => i.status === 'pending');
-  const completedItems = items.filter(i => i.status === 'completed');
+  const pendingItems = useMemo(() => items.filter(i => i.status === 'pending'), [items]);
+  const completedItems = useMemo(() => items.filter(i => i.status === 'completed'), [items]);
 
   const filteredProducts = useMemo(() => {
     if (!search.trim()) return frequentProducts;
@@ -108,9 +111,14 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
 
   return (
     <div className="pb-32 overflow-x-hidden flex flex-col min-h-full">
+      <StatsRow 
+        pendingCount={pendingItems.length} 
+        completedCount={completedItems.length} 
+        totalCount={items.length} 
+      />
       <div className="px-6 mb-6 sticky top-0 z-10 bg-background/80 backdrop-blur-md pt-2 pb-2">
         <SearchInput 
-          value={search} 
+          value={search}  
           onChange={setSearch} 
           onClear={() => setSearch("")} 
           placeholder="Buscar producto (si no está abajo)"
@@ -196,7 +204,8 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
                     <ShoppingItem 
                       item={item} 
                       onUpdate={handleUpdate} 
-                      onDelete={handleDelete} 
+                      onDelete={handleDelete}
+                      availableProfiles={availableProfiles} 
                     />
                   </motion.div>
                 ))}
@@ -256,7 +265,8 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
                      <ShoppingItem 
                        item={item} 
                        onUpdate={handleUpdate} 
-                       onDelete={handleDelete} 
+                       onDelete={handleDelete}
+                       availableProfiles={availableProfiles} 
                      />
                    </motion.div>
                  ))}

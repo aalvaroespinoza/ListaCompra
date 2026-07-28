@@ -7,22 +7,13 @@ import { Header } from "@/components/layout/Header";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Avatar } from "@/components/ui/Avatar";
-import { StatsRow } from "@/components/shared/StatsRow";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
-import { useShoppingList } from "@/features/shopping-list/hooks/use-shopping-list";
 import { motion } from "framer-motion";
 import { ShoppingList } from "@/features/shopping-list/components/ShoppingList";
 
 export default function HomeWireframe() {
   const [activeTab, setActiveTab] = useState("list");
   const { currentProfile, isLoading: isProfileLoading, changeProfile, clearProfile, availableProfiles } = useCurrentProfile();
-
-  // Load items to compute stats
-  const { items } = useShoppingList(currentProfile?.household_id);
-
-  const pendingCount = items.filter(i => i.status === 'pending').length;
-  const completedCount = items.filter(i => i.status === 'completed').length;
-  const totalCount = items.length;
 
   // Loading state 
   if (isProfileLoading) {
@@ -125,17 +116,10 @@ export default function HomeWireframe() {
       />
 
       {activeTab === "list" ? (
-        <>
-          <StatsRow 
-            pendingCount={pendingCount} 
-            completedCount={completedCount} 
-            totalCount={totalCount} 
-          />
-          <ShoppingList 
-            householdId={currentProfile.household_id} 
-            userId={currentProfile.id} 
-          />
-        </>
+        <ShoppingList 
+          householdId={currentProfile.household_id} 
+          userId={currentProfile.id} 
+        />
       ) : (
         <div className="flex flex-col items-center justify-center p-12 text-center text-text-tertiary h-64">
           <div className="bg-surface rounded-full p-4 shadow-sm mb-4">

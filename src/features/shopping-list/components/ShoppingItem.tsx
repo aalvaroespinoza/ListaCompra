@@ -6,17 +6,17 @@ import { Check, Plus, Edit2, Trash2, Minus } from 'lucide-react';
 import { ShoppingItem as ItemType } from '../hooks/use-shopping-list';
 import { getCategoryIcon } from '../utils/category-icons';
 import { Avatar } from '@/components/ui/Avatar';
-import { useCurrentProfile } from '@/hooks/use-current-profile';
 import { formatDateRelative } from '@/utils/dates';
+import { Profile } from '@/types/supabase';
 
 interface ShoppingItemProps {
   item: ItemType;
   onUpdate: (id: string, updates: Partial<ItemType>) => void;
   onDelete: (id: string) => void;
+  availableProfiles: Profile[];
 }
 
-export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
-  const { availableProfiles } = useCurrentProfile();
+export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, onDelete, availableProfiles }: ShoppingItemProps) {
   const controls = useAnimation();
   const [isEditingQuantity, setIsEditingQuantity] = useState(false);
   const [quantityStr, setQuantityStr] = useState(item.quantity.toString());
@@ -217,4 +217,4 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
       </motion.div>
     </div>
   );
-}
+});

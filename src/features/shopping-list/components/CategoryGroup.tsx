@@ -6,14 +6,17 @@ import { ShoppingItem as ShoppingItemType } from '../hooks/use-shopping-list';
 import { ShoppingItem } from './ShoppingItem';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { Profile } from '@/types/supabase';
+
 interface CategoryGroupProps {
   category: string;
   items: ShoppingItemType[];
   onUpdate: (id: string, updates: Partial<ShoppingItemType>) => void;
   onDelete: (id: string) => void;
+  availableProfiles: Profile[];
 }
 
-export function CategoryGroup({ category, items, onUpdate, onDelete }: CategoryGroupProps) {
+export function CategoryGroup({ category, items, onUpdate, onDelete, availableProfiles }: CategoryGroupProps) {
   const catInfo = CATEGORIES[category as CategoryType] || CATEGORIES['otros'];
   const Icon = catInfo.icon;
 
@@ -50,6 +53,7 @@ export function CategoryGroup({ category, items, onUpdate, onDelete }: CategoryG
                 item={item} 
                 onUpdate={onUpdate} 
                 onDelete={onDelete} 
+                availableProfiles={availableProfiles}
               />
             </motion.div>
           ))}

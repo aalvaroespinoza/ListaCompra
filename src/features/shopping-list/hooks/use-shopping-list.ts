@@ -44,6 +44,7 @@ export function useShoppingList(householdId: string | undefined) {
       if (error) throw error;
       return data as ShoppingItem[];
     },
+    staleTime: Infinity,
     enabled: !!householdId,
   });
 
