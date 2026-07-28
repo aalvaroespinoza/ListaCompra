@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3C8A5B;
-  --color-primary-hover: #32754D;
-  --color-primary-active: #295F3E;
-  --color-primary-disabled: #A5D1B8;
+  --color-primary: #8553F4; /* Violeta/Índigo vibrante del FAB y tab activo */
+  --color-primary-hover: #723DE8;
+  --color-primary-active: #5E2BC7;
+  --color-primary-disabled: #D1C0FB;
   
-  --color-secondary: #E0A93B;
-  --color-secondary-hover: #CC9831;
+  --color-secondary: #F6A845; /* Naranja/dorado del KPI Total */
+  --color-secondary-hover: #E39433;
   
   --color-success: #5FA86B;
   --color-danger: #C1554A;
@@ -55,19 +55,19 @@
 }
 
 :root {
-  --background: #FBF6EE; /* Blanco cálido */
-  --foreground: #2B2621; /* Texto carbón */
+  --background: #F9FAFB; /* Blanco/Gris muy claro */
+  --foreground: #111827; /* Texto principal oscuro */
   
   --surface: #FFFFFF;
-  --surface-hover: #F6EFE3;
-  --surface-active: #F0E6D5;
+  --surface-hover: #F3F4F6;
+  --surface-active: #E5E7EB;
   
-  --border: #E8E2D6;
-  --border-hover: #D6CEBE;
+  --border: #E5E7EB;
+  --border-hover: #D1D5DB;
   
-  --text-primary: #2B2621;
-  --text-secondary: #70675B;
-  --text-tertiary: #A69D91;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-tertiary: #9CA3AF;
 }
 
 @media (prefers-color-scheme: dark) {

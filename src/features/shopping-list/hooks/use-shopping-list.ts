@@ -49,8 +49,9 @@ export function useShoppingList(householdId: string | undefined) {
   useEffect(() => {
     if (!householdId) return;
 
+    const channelId = `public:shopping_items:${householdId}-${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel(`public:shopping_items:${householdId}`)
+      .channel(channelId)
       .on(
         "postgres_changes",
         {

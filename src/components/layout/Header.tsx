@@ -1,33 +1,34 @@
 import React from "react";
 import { cn } from "@/utils/cn";
 
-export interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
-  title: string;
-  subtitle?: string;
+export interface HeaderProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   rightAction?: React.ReactNode;
   leftAction?: React.ReactNode;
+  avatar?: React.ReactNode;
 }
 
 export const Header = React.forwardRef<HTMLElement, HeaderProps>(
-  ({ className, title, subtitle, rightAction, leftAction, ...props }, ref) => {
+  ({ className, title, subtitle, rightAction, leftAction, avatar, ...props }, ref) => {
     return (
       <header
         ref={ref}
         className={cn(
           "flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md sticky top-0 z-30 border-b border-transparent transition-colors pt-safe",
-          // Scroll effect class could be added here dynamically based on scroll position
           className
         )}
         {...props}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {leftAction}
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-text-primary">
+          {avatar && <div className="shrink-0">{avatar}</div>}
+          <div className="flex flex-col justify-center">
+            <h1 className="text-xl font-bold tracking-tight text-text-primary leading-tight">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm font-medium text-text-secondary">
+              <p className="text-[13px] font-medium text-text-tertiary capitalize">
                 {subtitle}
               </p>
             )}

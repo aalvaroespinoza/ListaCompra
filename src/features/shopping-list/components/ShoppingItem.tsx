@@ -4,6 +4,10 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, useAnimation, PanInfo } from 'framer-motion';
 import { Check, Plus, Edit2, Trash2, Minus } from 'lucide-react';
 import { ShoppingItem as ItemType } from '../hooks/use-shopping-list';
+import { getCategoryIcon } from '../utils/category-icons';
+import { Avatar } from '@/components/ui/Avatar';
+import { FAMILY_PROFILES } from '@/hooks/use-current-profile';
+import { formatDateRelative } from '@/utils/dates';
 
 interface ShoppingItemProps {
   item: ItemType;
@@ -117,67 +121,97 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
         animate={controls}
         initial={{ x: 0 }}
         className={`relative z-10 w-full h-full p-4 bg-surface rounded-2xl border border-border flex items-center justify-between shadow-sm
-          ${item.status === 'completed' ? 'opacity-60' : ''}
+          ${item.status === 'completed' ? 'opacity-80 bg-surface-hover' : ''}
         `}
       >
-        <div className="flex items-center gap-3 overflow-hidden">
-          {/* Indicador visual simple */}
-          <div 
-            onClick={handleComplete}
-            className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
-              ${item.status === 'completed' ? 'bg-success border-success' : 'border-text-tertiary'}
-            `}
-          >
-            {item.status === 'completed' && <Check size={14} className="text-white" />}
+        <div className="flex items-center gap-4 overflow-hidden">
+          {/* Indicador Visual: Círculo de Check + Emoji Badge */}
+          <div className="shrink-0 flex items-center gap-3">
+            {item.status === 'completed' ? (
+              <div 
+                onClick={handleComplete}
+                className="w-6 h-6 rounded-full bg-success flex items-center justify-center cursor-pointer transition-transform active:scale-95 shadow-sm"
+              >
+                <Check size={14} className="text-white" strokeWidth={3} />
+              </div>
+            ) : (
+              <div 
+                onClick={handleComplete}
+                className="w-6 h-6 rounded-full border-2 border-border cursor-pointer transition-transform active:scale-95 hover:border-primary/50"
+              />
+            )}
+            
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl shadow-sm ${item.status === 'completed' ? 'bg-primary/5 grayscale opacity-50' : 'bg-primary/10'}`}>
+              {getCategoryIcon(item.name, item.category)}
+            </div>
           </div>
           
           <div className="flex flex-col truncate">
-            <span className={`text-base font-medium truncate ${item.status === 'completed' ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
+            <span className={`text-base truncate ${item.status === 'completed' ? 'line-through text-success font-medium' : 'text-text-primary font-bold'}`}>
               {item.name}
             </span>
-            {item.category && (
-              <span className="text-xs text-text-tertiary">{item.category}</span>
-            )}
+            <span className="text-xs text-text-tertiary">
+              {item.category ? item.category : 'Otros'} {item.unit ? `• ${item.unit}` : ''}
+            </span>
           </div>
         </div>
 
-        {/* Manejo Avanzado de Cantidad (Visible siempre del lado derecho) */}
-        <div className="shrink-0 flex items-center gap-1 bg-surface-active rounded-lg p-1 ml-2">
-          {isEditingQuantity ? (
-            <input 
-              autoFocus
-              type="number"
-              inputMode="numeric"
-              value={quantityStr}
-              onChange={(e) => setQuantityStr(e.target.value)}
-              onBlur={submitQuantity}
-              onKeyDown={(e) => e.key === 'Enter' && submitQuantity()}
-              className="w-12 bg-transparent text-center font-medium focus:outline-none text-primary"
-            />
-          ) : (
-            <>
-              <button 
-                onClick={handleMinusOne}
-                disabled={item.quantity <= 1}
-                className="w-6 h-6 flex items-center justify-center text-text-secondary disabled:opacity-30"
-              >
-                <Minus size={14} />
-              </button>
-              <span 
-                onClick={() => setIsEditingQuantity(true)} 
-                className="min-w-[1.5rem] text-center font-medium text-text-primary px-1"
-              >
-                {item.quantity}{item.unit ? <span className="text-xs ml-0.5 text-text-tertiary">{item.unit}</span> : ''}
-              </span>
-              <button 
-                onClick={handleAddOne}
-                className="w-6 h-6 flex items-center justify-center text-primary"
-              >
-                <Plus size={14} />
-              </button>
-            </>
-          )}
-        </div>
+        {/* Lado Derecho: Avatar (completado) o Stepper (pendiente) */}
+        {item.status === 'completed' ? (
+          (() => {
+            const buyerId = item.updated_by || item.created_by;
+            const buyer = FAMILY_PROFILES.find(p => p.id === buyerId) || FAMILY_PROFILES[0];
+            const displayDate = item.purchased_at ? formatDateRelative(item.purchased_at) : 'Hoy';
+            return (
+              <div className="shrink-0 flex items-center gap-2">
+                <span className="text-xs text-text-tertiary font-medium">{displayDate}</span>
+                <Avatar 
+                  fallback={buyer.display_name} 
+                  size="sm" 
+                  className="w-7 h-7 shadow-sm"
+                  style={{ backgroundColor: buyer.color, color: '#fff' }}
+                />
+              </div>
+            );
+          })()
+        ) : (
+          <div className="shrink-0 flex items-center gap-1 bg-background rounded-xl p-1 ml-2 border border-border">
+            {isEditingQuantity ? (
+              <input 
+                autoFocus
+                type="number"
+                inputMode="numeric"
+                value={quantityStr}
+                onChange={(e) => setQuantityStr(e.target.value)}
+                onBlur={submitQuantity}
+                onKeyDown={(e) => e.key === 'Enter' && submitQuantity()}
+                className="w-12 bg-transparent text-center font-bold focus:outline-none text-primary"
+              />
+            ) : (
+              <>
+                <button 
+                  onClick={handleMinusOne}
+                  disabled={item.quantity <= 1}
+                  className="w-7 h-7 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-surface-active active:bg-surface-hover transition-colors"
+                >
+                  <Minus size={16} />
+                </button>
+                <span 
+                  onClick={() => setIsEditingQuantity(true)} 
+                  className="min-w-[1.5rem] text-center font-bold text-text-primary px-1"
+                >
+                  {item.quantity}
+                </span>
+                <button 
+                  onClick={handleAddOne}
+                  className="w-7 h-7 flex items-center justify-center text-primary rounded-lg hover:bg-primary/10 active:bg-primary/20 transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </motion.div>
     </div>
   );

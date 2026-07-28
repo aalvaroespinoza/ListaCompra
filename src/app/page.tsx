@@ -1,23 +1,32 @@
 "use client";
 
 import React, { useState } from "react";
-import { List, Settings, LogOut } from "lucide-react";
+import { List, Settings, LogOut, Clock, Star, MoreHorizontal, Users, ShoppingBag } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Header } from "@/components/layout/Header";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { IconButton } from "@/components/ui/IconButton";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Avatar } from "@/components/ui/Avatar";
+import { StatsRow } from "@/components/shared/StatsRow";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
+import { useShoppingList } from "@/features/shopping-list/hooks/use-shopping-list";
 import { motion } from "framer-motion";
 import { ShoppingList } from "@/features/shopping-list/components/ShoppingList";
 
 export default function HomeWireframe() {
   const [activeTab, setActiveTab] = useState("list");
-  const { currentProfile, isLoading, changeProfile, clearProfile, availableProfiles } = useCurrentProfile();
+  const { currentProfile, isLoading: isProfileLoading, changeProfile, clearProfile, availableProfiles } = useCurrentProfile();
+
+  // Load items to compute stats
+  const { items } = useShoppingList(currentProfile?.household_id);
+
+  const pendingCount = items.filter(i => i.status === 'pending').length;
+  const completedCount = items.filter(i => i.status === 'completed').length;
+  const totalCount = items.length;
 
   // Loading state 
-  if (isLoading) {
+  if (isProfileLoading) {
     return (
       <PageContainer withBottomNav={false} className="justify-center items-center p-6">
          <div className="w-full space-y-4">
@@ -84,39 +93,83 @@ export default function HomeWireframe() {
   // ============================================================================
   // APP PRINCIPAL
   // ============================================================================
+  const date = new Date();
+  const weekday = date.toLocaleDateString('es-ES', { weekday: 'long' });
+  const month = date.toLocaleDateString('es-ES', { month: 'long' });
+  const today = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${date.getDate()} de ${month.charAt(0).toUpperCase() + month.slice(1)}`;
+
   return (
     <PageContainer withBottomNav={true}>
       <Header 
-        title="Mercado" 
-        subtitle="3 artículos pendientes"
-        rightAction={
-          <div className="flex items-center gap-2">
+        avatar={
+          <div className="bg-primary/10 rounded-full p-1 border border-border/50 shadow-sm cursor-pointer" onClick={clearProfile}>
             <Avatar 
               fallback={currentProfile.display_name} 
               size="md"
               style={{ backgroundColor: currentProfile.color, color: '#fff' }}
+              className="shadow-sm"
             />
-            {/* Opción futura: Cambiar usuario */}
-            <IconButton variant="ghost" size="sm" onClick={clearProfile} title="Cambiar usuario">
-              <LogOut size={20} className="text-danger" />
-            </IconButton>
+          </div>
+        }
+        title={`¡Hola, ${currentProfile.display_name.split(' ')[0]}!`} 
+        subtitle={today}
+        rightAction={
+          <div className="flex items-center gap-2">
+            <div className="bg-surface rounded-full p-2.5 shadow-sm border border-border/50 cursor-pointer">
+              <Users size={20} className="text-text-secondary" />
+            </div>
+            <div className="bg-surface rounded-full p-2.5 shadow-sm border border-border/50 cursor-pointer">
+              <MoreHorizontal size={20} className="text-text-secondary" />
+            </div>
           </div>
         }
       />
 
-      <ShoppingList 
-        householdId={currentProfile.household_id} 
-        userId={currentProfile.id} 
-      />
+      {activeTab === "list" ? (
+        <>
+          <StatsRow 
+            pendingCount={pendingCount} 
+            completedCount={completedCount} 
+            totalCount={totalCount} 
+          />
+          <ShoppingList 
+            householdId={currentProfile.household_id} 
+            userId={currentProfile.id} 
+          />
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-12 text-center text-text-tertiary h-64">
+          <div className="bg-surface rounded-full p-4 shadow-sm mb-4">
+            {activeTab === "history" && <Clock size={32} className="opacity-50" />}
+            {activeTab === "frequent" && <Star size={32} className="opacity-50" />}
+            {activeTab === "settings" && <Settings size={32} className="opacity-50" />}
+          </div>
+          <p className="text-lg font-medium text-text-secondary">Próximamente</p>
+        </div>
+      )}
 
       <BottomNavigation
         items={[
           {
             id: "list",
             label: "Lista",
-            icon: <List size={24} />,
+            icon: <ShoppingBag size={24} />,
             isActive: activeTab === "list",
             onClick: () => setActiveTab("list")
+          },
+          {
+            id: "history",
+            label: "Historial",
+            icon: <Clock size={24} />,
+            isActive: activeTab === "history",
+            onClick: () => setActiveTab("history")
+          },
+          {
+            id: "frequent",
+            label: "Frecuentes",
+            icon: <Star size={24} />,
+            isActive: activeTab === "frequent",
+            onClick: () => setActiveTab("frequent")
           },
           {
             id: "settings",

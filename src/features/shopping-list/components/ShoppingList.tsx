@@ -58,34 +58,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
     }
   };
 
-  // Group pending items by category
-  const groupedPendingItems = useMemo(() => {
-    if (!items || !Array.isArray(items)) return [];
-    
-    const pendingItems = items.filter(i => i && i.status === 'pending');
-    
-    // Create an object with arrays for each category
-    const grouped = pendingItems.reduce((acc, item) => {
-      // Normalizar categoría heredada de base de datos vieja
-      let cat = (item.category || 'otros').toLowerCase() as CategoryType;
-      if (!CATEGORY_ORDER.includes(cat)) {
-        cat = 'otros';
-      }
-      
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(item);
-      return acc;
-    }, {} as Record<string, ShoppingItemType[]>);
-    
-    // Create an array of groups sorted by CATEGORY_ORDER
-    const orderedGroups = CATEGORY_ORDER.map(cat => ({
-      category: cat,
-      items: grouped[cat] || []
-    })).filter(group => group.items.length > 0);
-
-    return orderedGroups;
-  }, [items]);
-
+  const pendingItems = items.filter(i => i.status === 'pending');
   const completedItems = items.filter(i => i.status === 'completed');
 
   if (isLoading) {
@@ -103,21 +76,34 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
       {items.length === 0 ? (
         <EmptyState />
       ) : (
-        <>
-          <div className="pt-2">
-            {groupedPendingItems.map((group) => (
-              <CategoryGroup
-                key={group.category}
-                category={group.category}
-                items={group.items}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
+        <div className="px-6 mt-4">
+          {pendingItems.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-[17px] font-bold text-text-primary mb-3">Por comprar ({pendingItems.length})</h2>
+              <AnimatePresence initial={false}>
+                {pendingItems.map(item => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    layout
+                  >
+                    <ShoppingItem 
+                      item={item} 
+                      onUpdate={handleUpdate} 
+                      onDelete={handleDelete} 
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
 
           {completedItems.length > 0 && (
-            <Section title={`Completados (${completedItems.length})`}>
+            <div>
+              <h2 className="text-[17px] font-bold text-text-primary mb-3">Comprados ({completedItems.length})</h2>
               <AnimatePresence initial={false}>
                 {completedItems.map(item => (
                   <motion.div
@@ -136,9 +122,9 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
                   </motion.div>
                 ))}
               </AnimatePresence>
-            </Section>
+            </div>
           )}
-        </>
+        </div>
       )}
       
       <QuickInput householdId={householdId} onAdd={handleAdd} />
