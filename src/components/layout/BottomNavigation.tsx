@@ -37,7 +37,7 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
                 <div className={cn("transition-transform", item.isActive && "scale-110")}>
                   {item.icon}
                 </div>
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <span className="text-[10px] font-medium leading-none mt-1">{item.label}</span>
               </button>
             </li>
           ))}

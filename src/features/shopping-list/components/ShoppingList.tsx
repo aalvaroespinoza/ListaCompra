@@ -203,7 +203,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
                   disabled={isPending}
                 >
                   <span className="text-lg flex items-center justify-center w-4 h-4"><Icon size={16} /></span>
-                  <span className="text-sm font-semibold">{prod.name}</span>
+                  <span className="text-sm font-semibold leading-none pt-[1px]">{prod.name}</span>
                 </button>
               );
             })}

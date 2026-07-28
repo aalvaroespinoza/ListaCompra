@@ -39,7 +39,7 @@ export default function RootLayout({
       <body className="font-sans bg-background text-text-primary antialiased selection:bg-primary/20 selection:text-primary">
         <AppProviders>
           {/* Aquí irían layouts globales como Navbar móvil en el futuro */}
-          <main className="flex min-h-screen flex-col">{children}</main>
+          <main className="flex min-h-[100dvh] flex-col">{children}</main>
         </AppProviders>
       </body>
     </html>
