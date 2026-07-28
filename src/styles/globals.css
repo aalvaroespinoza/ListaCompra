@@ -1,14 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #007AFF;
-  --color-primary-hover: #0066D6;
-  --color-primary-active: #0052B3;
-  --color-primary-disabled: #99C8FF;
+  --color-primary: #3C8A5B;
+  --color-primary-hover: #32754D;
+  --color-primary-active: #295F3E;
+  --color-primary-disabled: #A5D1B8;
   
-  --color-success: #34C759;
-  --color-danger: #FF3B30;
-  --color-warning: #FF9500;
+  --color-secondary: #E0A93B;
+  --color-secondary-hover: #CC9831;
+  
+  --color-success: #5FA86B;
+  --color-danger: #C1554A;
+  --color-warning: #E0A93B;
+  
+  --color-cat-almacen: #E0A93B;
+  --color-cat-verduleria: #5FA86B;
+  --color-cat-carniceria: #C1554A;
+  --color-cat-lacteos: #7FA8C9;
+  --color-cat-limpieza: #9B8AC4;
+  --color-cat-otros: #A8A39D;
   
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -30,49 +40,51 @@
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
 
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-ios: 0 4px 24px -6px rgb(0 0 0 / 0.08);
+  --shadow-xs: 0 1px 2px 0 rgb(43 38 33 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(43 38 33 / 0.08), 0 1px 2px -1px rgb(43 38 33 / 0.08);
+  --shadow-md: 0 4px 6px -1px rgb(43 38 33 / 0.08), 0 2px 4px -2px rgb(43 38 33 / 0.08);
+  --shadow-lg: 0 10px 15px -3px rgb(43 38 33 / 0.08), 0 4px 6px -4px rgb(43 38 33 / 0.08);
+  --shadow-ios: 0 8px 30px -6px rgb(43 38 33 / 0.12);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-fredoka), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
   
   --animate-ios-press: ios-press 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
   --animate-ios-release: ios-release 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
 :root {
-  --background: #F2F2F7; /* iOS Light Gray Background */
-  --foreground: #000000;
+  --background: #FBF6EE; /* Blanco cálido */
+  --foreground: #2B2621; /* Texto carbón */
   
   --surface: #FFFFFF;
-  --surface-hover: #F8F8F8;
-  --surface-active: #E5E5EA;
+  --surface-hover: #F6EFE3;
+  --surface-active: #F0E6D5;
   
-  --border: #E5E5EA;
-  --border-hover: #D1D1D6;
+  --border: #E8E2D6;
+  --border-hover: #D6CEBE;
   
-  --text-primary: #000000;
-  --text-secondary: #3C3C4399; /* 60% opacity */
-  --text-tertiary: #3C3C434D; /* 30% opacity */
+  --text-primary: #2B2621;
+  --text-secondary: #70675B;
+  --text-tertiary: #A69D91;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000; /* iOS Dark Background */
-    --foreground: #FFFFFF;
+    --background: #1C1917; /* Dark but warm base */
+    --foreground: #FBF6EE;
     
-    --surface: #1C1C1E; /* iOS Dark Surface */
-    --surface-hover: #2C2C2E;
-    --surface-active: #3A3A3C;
+    --surface: #292524;
+    --surface-hover: #34302F;
+    --surface-active: #44403C;
     
-    --border: #38383A;
-    --border-hover: #48484A;
+    --border: #44403C;
+    --border-hover: #57534E;
     
-    --text-primary: #FFFFFF;
-    --text-secondary: #EBEBF599; /* 60% opacity */
-    --text-tertiary: #EBEBF54D; /* 30% opacity */
+    --text-primary: #FBF6EE;
+    --text-secondary: #D6CEBE;
+    --text-tertiary: #A69D91;
   }
 }
 
