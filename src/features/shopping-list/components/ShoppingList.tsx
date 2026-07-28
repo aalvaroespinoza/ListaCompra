@@ -60,11 +60,18 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
 
   // Group pending items by category
   const groupedPendingItems = useMemo(() => {
-    const pendingItems = items.filter(i => i.status === 'pending');
+    if (!items || !Array.isArray(items)) return [];
+    
+    const pendingItems = items.filter(i => i && i.status === 'pending');
     
     // Create an object with arrays for each category
     const grouped = pendingItems.reduce((acc, item) => {
-      const cat = item.category || 'otros';
+      // Normalizar categoría heredada de base de datos vieja
+      let cat = (item.category || 'otros').toLowerCase() as CategoryType;
+      if (!CATEGORY_ORDER.includes(cat)) {
+        cat = 'otros';
+      }
+      
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(item);
       return acc;
@@ -75,16 +82,6 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
       category: cat,
       items: grouped[cat] || []
     })).filter(group => group.items.length > 0);
-    
-    // Add any unknown categories at the end (shouldn't happen with the constraint, but just in case)
-    Object.keys(grouped).forEach(cat => {
-      if (!CATEGORY_ORDER.includes(cat as CategoryType)) {
-        orderedGroups.push({
-          category: cat as CategoryType,
-          items: grouped[cat]
-        });
-      }
-    });
 
     return orderedGroups;
   }, [items]);
