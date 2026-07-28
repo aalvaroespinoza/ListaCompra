@@ -29,6 +29,15 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   const [conflictProduct, setConflictProduct] = useState<{name: string, category: string, existingItem: ShoppingItemType} | null>(null);
   const [isGridOpen, setIsGridOpen] = useState(false);
 
+  // Filtrado inteligente de chips frecuentes basado en lo que el usuario escribe
+  const filteredFrequent = React.useMemo(() => {
+    if (!search.trim()) return frequentProducts.slice(0, 8);
+    const lowerSearch = search.toLowerCase();
+    return frequentProducts
+      .filter(p => p.name.toLowerCase().includes(lowerSearch))
+      .slice(0, 8);
+  }, [search, frequentProducts]);
+
   const handleAdd = async (name: string, category: string) => {
     try {
       await addItem({
@@ -180,9 +189,9 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
       <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+64px)] w-full max-w-md mx-auto left-0 right-0 z-20 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
         
         {/* Horizontal Chips */}
-        {frequentProducts.length > 0 && (
+        {!isGridOpen && filteredFrequent.length > 0 && (
           <div className="flex overflow-x-auto gap-2 mb-3 pb-1 scrollbar-hide -mx-2 px-2">
-            {frequentProducts.slice(0, 8).map(prod => {
+            {filteredFrequent.map(prod => {
               const isPending = pendingItems.some(i => i.name.toLowerCase() === prod.name.toLowerCase());
               const catInfo = CATEGORIES[prod.category as CategoryType] || CATEGORIES['otros'];
               const Icon = catInfo.icon;

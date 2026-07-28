@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { db } from "@/lib/db";
+import { NotificationService } from "@/services/notification-service";
 
 export type ShoppingItem = {
   id: string;
@@ -112,13 +114,36 @@ export function useShoppingList(householdId: string | undefined) {
   // 3. Mutaciones con Optimistic Updates
   const addItemMutation = useMutation({
     mutationFn: async (newItem: Database['public']['Tables']['shopping_items']['Insert']) => {
-      const { data, error } = await supabase
-        .from("shopping_items")
-        .insert([newItem])
-        .select()
-        .single();
-      if (error) throw error;
-      return data as ShoppingItem;
+      const isOnline = navigator.onLine;
+      if (!isOnline) {
+        await db.syncQueue.add({
+          action: 'insert',
+          table: 'shopping_items',
+          payload: newItem,
+          timestamp: new Date().toISOString()
+        });
+        return { ...newItem, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ShoppingItem;
+      }
+      try {
+        const { data, error } = await supabase
+          .from("shopping_items")
+          .insert([newItem])
+          .select()
+          .single();
+        if (error) throw error;
+        return data as ShoppingItem;
+      } catch (error: any) {
+        if (error.message?.includes('fetch') || !navigator.onLine) {
+          await db.syncQueue.add({
+            action: 'insert',
+            table: 'shopping_items',
+            payload: newItem,
+            timestamp: new Date().toISOString()
+          });
+          return { ...newItem, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ShoppingItem;
+        }
+        throw error;
+      }
     },
     onMutate: async (newItem) => {
       await queryClient.cancelQueries({ queryKey });
@@ -143,6 +168,7 @@ export function useShoppingList(householdId: string | undefined) {
       return { previousItems, id: newItem.id };
     },
     onSuccess: (realItem, variables, context) => {
+      NotificationService.notify(realItem.household_id, realItem.created_by, 'added', 1);
       queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => 
         (old || []).map(item => item.id === context?.id ? realItem : item)
       );
@@ -157,14 +183,42 @@ export function useShoppingList(householdId: string | undefined) {
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['shopping_items']['Update'] }) => {
-      const { data, error } = await supabase
-        .from("shopping_items")
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data as ShoppingItem;
+      const isOnline = navigator.onLine;
+      const updatedItem = { ...updates, updated_at: new Date().toISOString() };
+      
+      if (!isOnline) {
+        // En updates, necesitamos obtener el item anterior para el last_known_updated_at si es posible
+        // Como no tenemos el item completo aquí, el provider asume que la app enviará un last_known_updated_at si lo tuviéramos
+        await db.syncQueue.add({
+          action: 'update',
+          table: 'shopping_items',
+          payload: { id, ...updatedItem },
+          timestamp: new Date().toISOString()
+        });
+        return { id, ...updatedItem } as ShoppingItem;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from("shopping_items")
+          .update(updatedItem)
+          .eq("id", id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data as ShoppingItem;
+      } catch (error: any) {
+        if (error.message?.includes('fetch') || !navigator.onLine) {
+          await db.syncQueue.add({
+            action: 'update',
+            table: 'shopping_items',
+            payload: { id, ...updatedItem },
+            timestamp: new Date().toISOString()
+          });
+          return { id, ...updatedItem } as ShoppingItem;
+        }
+        throw error;
+      }
     },
     onMutate: async ({ id, updates }) => {
       await queryClient.cancelQueries({ queryKey });
@@ -184,11 +238,37 @@ export function useShoppingList(householdId: string | undefined) {
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("shopping_items")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      const isOnline = navigator.onLine;
+      const deletedPayload = { id, deleted_at: new Date().toISOString() };
+      
+      if (!isOnline) {
+        await db.syncQueue.add({
+          action: 'update', // Borrado lógico es un update
+          table: 'shopping_items',
+          payload: deletedPayload,
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from("shopping_items")
+          .update(deletedPayload)
+          .eq("id", id);
+        if (error) throw error;
+      } catch (error: any) {
+        if (error.message?.includes('fetch') || !navigator.onLine) {
+          await db.syncQueue.add({
+            action: 'update',
+            table: 'shopping_items',
+            payload: deletedPayload,
+            timestamp: new Date().toISOString()
+          });
+          return;
+        }
+        throw error;
+      }
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey });
