@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { Database } from "@/types/supabase";
 
 export type ShoppingItem = {
   id: string;
@@ -76,7 +77,6 @@ export function useShoppingList(householdId: string | undefined) {
     mutationFn: async (newItem: Partial<ShoppingItem>) => {
       const { data, error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error Supabase types strictness issue with Insert
         .insert([newItem])
         .select()
         .single();
@@ -104,7 +104,6 @@ export function useShoppingList(householdId: string | undefined) {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ShoppingItem> }) => {
       const { data, error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error Supabase types strictness issue with Update
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
@@ -131,7 +130,6 @@ export function useShoppingList(householdId: string | undefined) {
       // Soft delete para mantener historial
       const { error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error Supabase types strictness issue with Update
         .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;

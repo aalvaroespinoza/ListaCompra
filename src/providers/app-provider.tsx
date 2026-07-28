@@ -2,15 +2,15 @@
 
 import { Toaster } from "sonner";
 import { QueryProvider } from "./query-provider";
-import { AuthProvider } from "./auth-provider";
+import { AnonSessionProvider } from "./anon-session-provider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
-      <AuthProvider>
+      <AnonSessionProvider>
         <Toaster position="top-center" richColors />
         {children}
-      </AuthProvider>
+      </AnonSessionProvider>
     </QueryProvider>
   );
 }

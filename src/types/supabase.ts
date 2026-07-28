@@ -11,6 +11,7 @@ export type Json =
 
 export interface Profile {
   id: string;
+  household_id: string;
   display_name: string;
   color: string;
   avatar_url: string | null;
@@ -71,8 +72,38 @@ export interface Database {
           purchased_at: string | null;
           deleted_at: string | null;
         };
-        Insert: Partial<Omit<Database['public']['Tables']['shopping_items']['Row'], 'id' | 'created_at' | 'updated_at'>> & { name: string; household_id: string; created_by: string };
-        Update: Partial<Omit<Database['public']['Tables']['shopping_items']['Row'], 'id' | 'created_at' | 'updated_at'>>;
+        Insert: {
+          id?: string;
+          household_id: string;
+          name: string;
+          quantity?: number;
+          unit?: string | null;
+          notes?: string | null;
+          status?: 'pending' | 'completed';
+          category?: string | null;
+          created_by: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          purchased_at?: string | null;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          household_id?: string;
+          name?: string;
+          quantity?: number;
+          unit?: string | null;
+          notes?: string | null;
+          status?: 'pending' | 'completed';
+          category?: string | null;
+          created_by?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          purchased_at?: string | null;
+          deleted_at?: string | null;
+        };
       };
     };
     Views: {
