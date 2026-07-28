@@ -86,23 +86,51 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
               
               // Chequear conflicto
               if (data?.conflict) {
-                toast.error('Conflicto detectado', {
-                  description: `Alguien modificó este ítem mientras estabas offline. Se conservará la versión del servidor.`,
+                toast.error('Conflicto detectado en la nube', {
+                  description: `Tus cambios offline para un producto entraron en conflicto con los del servidor y fueron rechazados.`,
                   duration: 6000,
                 });
+                
+                // Mover a DLQ por si el usuario quiere inspeccionar luego
+                if (op.id) {
+                  await db.deadLetterQueue.add({
+                    ...op,
+                    errorReason: 'Conflicto: la versión del servidor es más reciente',
+                    failedAt: new Date().toISOString()
+                  });
+                }
               }
             }
-            // Removemos de la cola si fue exitoso o el error fue atrapado y manejado internamente
+            // Removemos de la cola principal si fue exitoso o manejado
             if (op.id) await db.syncQueue.delete(op.id);
           } catch (itemError: unknown) {
             const err = itemError as Error;
             console.error('Error sincronizando ítem:', err);
-            // Si el error es de red o timeout, detenemos la sincronización por ahora
-            if (err.message?.includes('fetch') || err.message?.includes('network')) {
-              throw err;
-            } else {
-              // Si es un error 400 u otro permanente, lo borramos para no atascar la cola
-              if (op.id) await db.syncQueue.delete(op.id);
+            
+            const isNetworkError = err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('timeout') || err.message?.includes('Failed to fetch');
+            
+            if (isNetworkError) {
+              // Retry inteligente
+              const retries = (op.retryCount || 0) + 1;
+              if (retries <= 3) {
+                if (op.id) await db.syncQueue.update(op.id, { retryCount: retries });
+                throw err; // Lanza error para pausar el bucle de sincronización (la red sigue mal)
+              }
+              // Si superó los reintentos, se trata como error permanente abajo
+            }
+            
+            // Error permanente o máximo de reintentos -> Mover a DLQ (Dead Letter Queue)
+            if (op.id) {
+              await db.deadLetterQueue.add({
+                ...op,
+                errorReason: err.message || 'Error desconocido (permanente)',
+                failedAt: new Date().toISOString()
+              });
+              await db.syncQueue.delete(op.id);
+              
+              toast.error('Error permanente de sincronización', {
+                description: 'Un cambio offline falló repetidamente. Se movió a la cuarentena (DLQ) para no bloquear la cola.'
+              });
             }
           }
         }
