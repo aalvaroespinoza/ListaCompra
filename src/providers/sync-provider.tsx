@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { CloudOff, RefreshCw } from 'lucide-react';
 import { useCurrentProfile } from '@/hooks/use-current-profile';
+import type { Database } from '@/types/supabase';
 
 interface SyncContextType {
   isOnline: boolean;
@@ -68,8 +69,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         for (const op of operations) {
           try {
             if (op.action === 'insert') {
-              // @ts-expect-error - op.payload is generic Record<string, unknown> from Dexie
-              const { error } = await supabase.from(op.table as "shopping_items").insert(op.payload);
+              const payload = op.payload as Database['public']['Tables']['shopping_items']['Insert'];
+              const { error } = await supabase.from(op.table as "shopping_items").insert(payload);
               if (error) throw error;
             } else if (op.action === 'update' && op.table === 'shopping_items') {
               // Usar RPC seguro
