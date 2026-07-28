@@ -1,0 +1,5 @@
+/**
+ * Estructura para Queries de Lista de Compras
+ * Aquí irán los hooks de React Query (useQuery) para obtener datos.
+ */
+export {};

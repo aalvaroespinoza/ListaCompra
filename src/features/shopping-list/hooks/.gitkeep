@@ -1,0 +1,5 @@
+/**
+ * Estructura para Hooks específicos de Lista de Compras
+ * Lógica de estado local de React, cálculos de UI o wrappers específicos del feature.
+ */
+export {};

@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ListaCompra
 
-## Getting Started
+Progressive Web App (PWA) optimizada para iOS, diseñada para gestionar una lista de compras familiar en tiempo real. 
+Construida con Next.js 15, React, Tailwind CSS y preparada para integración con Supabase.
 
-First, run the development server:
+## Arquitectura
+
+El proyecto está diseñado con una arquitectura modular para escalar a largo plazo:
+
+- `/src/components`: UI modular. Separación estricta entre elementos base (`/ui`) y estructurales (`/layout`).
+- `/src/config`: Validaciones centralizadas de entorno (Zod).
+- `/src/lib`: Clientes de terceros (Supabase).
+- `/src/providers`: Envoltorios de contexto globales (React Query, Sonner).
+- `/src/types`: Definiciones TypeScript y tipos auto-generados.
+- `/src/utils`: Helpers, manejo de errores y constantes.
+- `/src/services`, `/src/repositories`, `/src/queries`, `/src/mutations`: Estructuras preparadas para la capa de datos.
+
+## Configuración de Entorno y Supabase
+
+1. Crea el archivo `.env.local` basado en `.env.example`:
+   ```bash
+   cp .env.example .env.local
+   ```
+2. Añade las credenciales de Supabase en `.env.local`:
+   - `NEXT_PUBLIC_SUPABASE_URL`: La URL del proyecto.
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: La clave anónima pública.
+
+**Nota Importante**: Nunca accedas a `process.env` directamente desde los componentes. Importa siempre el objeto tipado desde `src/config/env.ts`.
+
+## Comandos de Desarrollo
 
 ```bash
+# Iniciar el servidor local de desarrollo (con Turbopack)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Generar la build de producción
+npm run build
+
+# Validar linting
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Convenciones de Código
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **TypeScript Estricto**: No se permite el uso de `any`.
+- **Manejo de Errores Centralizado**: Usa `handleError()` de `src/utils/errors.ts` para capturar excepciones en lugar de exponer los detalles al usuario de forma dispersa.
+- **Tailwind**: Utilizar la utilidad `cn()` de `src/utils/cn.ts` al combinar clases dinámicas. Los tokens visuales (colores, sombras, radios) están definidos en `src/styles/globals.css`.

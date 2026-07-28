@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #007AFF;
+  --color-primary-hover: #0066D6;
+  --color-primary-active: #0052B3;
+  --color-primary-disabled: #99C8FF;
+  
+  --color-success: #34C759;
+  --color-danger: #FF3B30;
+  --color-warning: #FF9500;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-ios: 0 4px 24px -6px rgb(0 0 0 / 0.08);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  
+  --animate-ios-press: ios-press 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
+  --animate-ios-release: ios-release 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+:root {
+  --background: #F2F2F7; /* iOS Light Gray Background */
+  --foreground: #000000;
+  
+  --surface: #FFFFFF;
+  --surface-hover: #F8F8F8;
+  --surface-active: #E5E5EA;
+  
+  --border: #E5E5EA;
+  --border-hover: #D1D1D6;
+  
+  --text-primary: #000000;
+  --text-secondary: #3C3C4399; /* 60% opacity */
+  --text-tertiary: #3C3C434D; /* 30% opacity */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000; /* iOS Dark Background */
+    --foreground: #FFFFFF;
+    
+    --surface: #1C1C1E; /* iOS Dark Surface */
+    --surface-hover: #2C2C2E;
+    --surface-active: #3A3A3C;
+    
+    --border: #38383A;
+    --border-hover: #48484A;
+    
+    --text-primary: #FFFFFF;
+    --text-secondary: #EBEBF599; /* 60% opacity */
+    --text-tertiary: #EBEBF54D; /* 30% opacity */
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* iOS PWA Safe Area */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* Prevent tap highlight on mobile Safari */
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+@keyframes ios-press {
+  0% { transform: scale(1); }
+  100% { transform: scale(0.96); }
+}
+
+@keyframes ios-release {
+  0% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* Scrollbar styling for a cleaner look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: var(--radius-full);
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+  }
+}

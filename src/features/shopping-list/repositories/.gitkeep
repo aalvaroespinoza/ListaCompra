@@ -1,0 +1,5 @@
+/**
+ * Estructura para Repositorios de Lista de Compras
+ * Los repositorios se encargan de la comunicación directa con la base de datos (Supabase).
+ */
+export {};

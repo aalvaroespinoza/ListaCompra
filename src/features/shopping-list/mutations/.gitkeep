@@ -1,0 +1,5 @@
+/**
+ * Estructura para Mutaciones de Lista de Compras
+ * Aquí irán los hooks de React Query (useMutation) para crear, actualizar o eliminar datos.
+ */
+export {};

@@ -1,0 +1,5 @@
+/**
+ * Estructura para Servicios de Lista de Compras
+ * Los servicios contienen la lógica de negocio y orquestan llamados a repositorios o APIs externas.
+ */
+export {};
