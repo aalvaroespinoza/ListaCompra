@@ -89,7 +89,7 @@ export function QuickAddSheet({ householdId, isOpen, onClose, onAdd }: QuickAddS
                   <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
                      <Plus size={40} />
                   </div>
-                  <p className="text-gray-500 font-medium">No se encontró "{search}"</p>
+                  <p className="text-gray-500 font-medium">No se encontró &quot;{search}&quot;</p>
                   <button
                     onClick={() => handleAdd(search.trim())}
                     className="bg-primary text-white px-8 py-4 rounded-2xl font-semibold shadow-lg shadow-primary/30 flex items-center gap-2 active:scale-95 transition-transform"
@@ -105,7 +105,7 @@ export function QuickAddSheet({ householdId, isOpen, onClose, onAdd }: QuickAddS
                         className="col-span-full mb-2 bg-primary/10 text-primary px-5 py-4 rounded-2xl font-semibold flex items-center gap-2 active:scale-95 transition-transform justify-center shadow-sm"
                       >
                         <Plus size={20} />
-                        Agregar "{search.trim()}"
+                        Agregar &quot;{search.trim()}&quot;
                       </button>
                   )}
                   {filteredProducts.map((prod) => {

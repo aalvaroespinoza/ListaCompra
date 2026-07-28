@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { List, Settings, LogOut, Clock, Star, MoreHorizontal, Users, ShoppingBag } from "lucide-react";
+import { Settings, Clock, Star, MoreHorizontal, Users, ShoppingBag } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Header } from "@/components/layout/Header";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
-import { IconButton } from "@/components/ui/IconButton";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatsRow } from "@/components/shared/StatsRow";

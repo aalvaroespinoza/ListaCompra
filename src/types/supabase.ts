@@ -43,16 +43,19 @@ export interface Database {
         Row: Profile;
         Insert: Omit<Profile, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
       };
       households: {
         Row: Household;
         Insert: Omit<Household, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Household, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
       };
       household_members: {
         Row: HouseholdMember;
         Insert: Omit<HouseholdMember, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<HouseholdMember, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
       };
       // ... otras tablas se generarán aquí en el futuro
       shopping_items: {
@@ -104,6 +107,7 @@ export interface Database {
           purchased_at?: string | null;
           deleted_at?: string | null;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -114,8 +118,23 @@ export interface Database {
           category: string;
           frequency: number;
           last_purchased_at: string | null;
-        }
-      }
+        };
+        Insert: {
+          household_id: string;
+          name: string;
+          category: string;
+          frequency?: number;
+          last_purchased_at?: string | null;
+        };
+        Update: {
+          household_id?: string;
+          name?: string;
+          category?: string;
+          frequency?: number;
+          last_purchased_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;

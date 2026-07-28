@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Plus, Mic } from "lucide-react";
 import { QuickAddSheet } from './QuickAddSheet';
-import { CategoryType } from '../constants';
 
 interface QuickInputProps {
   householdId: string;

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/supabase";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export type ShoppingItem = {
   id: string;
@@ -24,7 +25,7 @@ export type ShoppingItem = {
 
 export function useShoppingList(householdId: string | undefined) {
   const queryClient = useQueryClient();
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as SupabaseClient<Database>;
   const queryKey = ["shopping_items", householdId];
 
   // 1. Fetch de items activos (no borrados lógicamente)
@@ -60,10 +61,10 @@ export function useShoppingList(householdId: string | undefined) {
           table: "shopping_items",
           filter: `household_id=eq.${householdId}`,
         },
-        (payload) => {
+        () => {
           // Optimización: invalidar la cache forzará un refetch reactivo.
           // Como React Query maneja el estado global, esto sincroniza toda la app.
-          queryClient.invalidateQueries({ queryKey });
+          queryClient.invalidateQueries({ queryKey: ["shopping_items", householdId] });
         }
       )
       .subscribe();
@@ -75,10 +76,11 @@ export function useShoppingList(householdId: string | undefined) {
 
   // 3. Mutaciones con Invalidación
   const addItemMutation = useMutation({
-    mutationFn: async (newItem: Partial<ShoppingItem>) => {
+    mutationFn: async (newItem: Database['public']['Tables']['shopping_items']['Insert']) => {
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("shopping_items")
+        // @ts-expect-error: El SDK de Supabase infiere 'never' para 'shopping_items' porque el tipo Database generado parece incompleto internamente.
         .insert([newItem])
         .select()
         .single();
@@ -103,10 +105,11 @@ export function useShoppingList(householdId: string | undefined) {
   });
 
   const updateItemMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ShoppingItem> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['shopping_items']['Update'] }) => {
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("shopping_items")
+        // @ts-expect-error: Infiere 'never' (mismo problema con el tipo Database de Supabase)
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
@@ -132,8 +135,9 @@ export function useShoppingList(householdId: string | undefined) {
     mutationFn: async (id: string) => {
       // Soft delete para mantener historial
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("shopping_items")
+        // @ts-expect-error: Infiere 'never'
         .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;

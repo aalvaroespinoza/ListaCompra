@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, useAnimation, PanInfo } from 'framer-motion';
 import { Check, Plus, Edit2, Trash2, Minus } from 'lucide-react';
 import { ShoppingItem as ItemType } from '../hooks/use-shopping-list';
@@ -27,7 +27,7 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
     }
   };
 
-  const handleDragEnd = (e: any, info: PanInfo) => {
+  const handleDragEnd = (e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 60; // Píxeles para activar menú
     
     if (info.offset.x > threshold) {

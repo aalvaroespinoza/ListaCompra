@@ -25,7 +25,7 @@ export class HouseholdRepository {
     
     // Supabase returns related tables as arrays or single objects based on the relationship.
     // In our case it's a 1-to-1 from the member's perspective.
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item: HouseholdMember & { profile: Profile | Profile[] | null }) => ({
       ...item,
       profile: Array.isArray(item.profile) ? item.profile[0] : item.profile
     })) as MemberWithProfile[];
@@ -50,7 +50,7 @@ export class HouseholdRepository {
 
     // Extraemos los households
     const households = (members || [])
-        .map((m: any) => Array.isArray(m.household) ? m.household[0] : m.household)
+        .map((m: HouseholdMember & { household: Household | Household[] | null }) => Array.isArray(m.household) ? m.household[0] : m.household)
         .filter(Boolean);
 
     return households as Household[];

@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export default async function proxy(request: NextRequest) {
+export default async function proxy() {
   // NOTA: Como la autenticación tradicional fue removida y ahora usamos
   // selección de perfiles local, ya no redirigimos a /login.
   return NextResponse.next();

@@ -39,27 +39,29 @@ const STORAGE_KEY = "listacompra_current_profile";
  * No utiliza autenticación real, se basa en LocalStorage preparado para offline.
  */
 export function useCurrentProfile() {
-  const [currentProfile, setCurrentProfile] = useState<LocalProfile | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<LocalProfile | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.id && parsed.id.startsWith("user-")) {
+            localStorage.removeItem(STORAGE_KEY);
+          } else {
+            return parsed;
+          }
+        }
+      } catch (error) {
+        console.error("Error reading profile from storage", error);
+      }
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cargar usuario persistido al montar el componente
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Si el usuario tiene guardado un perfil de los viejos con ID "user-X", lo borramos
-        if (parsed.id && parsed.id.startsWith("user-")) {
-          localStorage.removeItem(STORAGE_KEY);
-        } else {
-          setCurrentProfile(parsed);
-        }
-      }
-    } catch (error) {
-      console.error("Error reading profile from storage", error);
-    } finally {
-      setIsLoading(false);
-    }
+    const t = setTimeout(() => setIsLoading(false), 0);
+    return () => clearTimeout(t);
   }, []);
 
   // Cambiar usuario actual

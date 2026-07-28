@@ -1,7 +1,6 @@
 import React from "react";
 import { ShoppingBag, CheckCircle2, ShoppingCart } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { cn } from "@/utils/cn";
 
 export interface StatsRowProps {
   pendingCount: number;
@@ -12,7 +11,7 @@ export interface StatsRowProps {
 
 export function StatsRow({ pendingCount, completedCount, totalCount, className }: StatsRowProps) {
   return (
-    <div className="grid grid-cols-3 gap-3 px-6 py-2 mb-2 mt-4">
+    <div className={`grid grid-cols-3 gap-3 px-6 py-2 mb-2 mt-4 ${className || ''}`}>
       {/* Por Comprar */}
       <Card padding="sm" className="flex flex-col border-border/50 shadow-sm relative overflow-hidden">
         <div className="flex items-center gap-2 mb-2">

@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import { Section } from "@/components/layout/Section";
 import { ShoppingItem } from "./ShoppingItem";
 import { EmptyState } from "./EmptyState";
 import { QuickInput } from "./QuickInput";
-import { CategoryGroup } from "./CategoryGroup";
 import { useShoppingList, ShoppingItem as ShoppingItemType } from "../hooks/use-shopping-list";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
-import { CATEGORY_ORDER, CategoryType } from "../constants";
 
 interface ShoppingListProps {
   householdId: string;
@@ -33,18 +30,18 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
       toast.success(`Agregado: ${name}`);
       // Vibración sutil en móviles si está soportado
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
-    } catch (error) {
+    } catch {
       toast.error("Error al agregar el producto");
     }
   };
 
-  const handleUpdate = async (id: string, updates: any) => {
+  const handleUpdate = async (id: string, updates: Partial<ShoppingItemType>) => {
     try {
       await updateItem({ id, updates });
       if (updates.status === 'completed') {
          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([30, 50, 30]);
       }
-    } catch (error) {
+    } catch {
       toast.error("Error al actualizar");
     }
   };
@@ -53,7 +50,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
     try {
       await deleteItem(id);
       toast.info("Producto eliminado");
-    } catch (error) {
+    } catch {
       toast.error("Error al eliminar");
     }
   };
