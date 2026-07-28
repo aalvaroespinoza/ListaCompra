@@ -6,7 +6,7 @@ export interface SyncOperation {
   id?: number; // Auto-incrementado por Dexie
   action: SyncAction;
   table: string;
-  payload: any;
+  payload: Record<string, unknown>;
   timestamp: string;
 }
 

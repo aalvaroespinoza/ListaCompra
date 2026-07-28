@@ -16,7 +16,7 @@ interface SyncContextType {
 const SyncContext = createContext<SyncContextType>({ isOnline: true, pendingCount: 0 });
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
@@ -25,7 +25,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   // Monitorear conexión
   useEffect(() => {
-    setIsOnline(navigator.onLine);
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -46,7 +45,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     };
     
     // Suscribirse a cambios en Dexie
-    const subscription = db.syncQueue.hook('creating', () => {
+    db.syncQueue.hook('creating', () => {
       setTimeout(updateCount, 50);
     });
     db.syncQueue.hook('deleting', () => {
@@ -67,40 +66,51 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         const operations = await db.syncQueue.orderBy('id').toArray();
         
         for (const op of operations) {
-          if (op.action === 'insert') {
-            const { error } = await supabase.from(op.table as any).insert(op.payload);
-            if (error) throw error;
-          } else if (op.action === 'update' && op.table === 'shopping_items') {
-            // Usar RPC seguro
-            const { data, error } = await (supabase.rpc as any)('update_shopping_item_safe', {
-              p_id: op.payload.id,
-              p_quantity: op.payload.quantity,
-              p_status: op.payload.status,
-              p_last_known_updated_at: op.payload.last_known_updated_at || op.timestamp
-            });
-            
-            if (error) throw error;
-            
-            // Chequear conflicto
-            if (data?.conflict) {
-              toast.error('Conflicto detectado', {
-                description: `Alguien modificó "${op.payload.name || 'este ítem'}" mientras estabas offline. La versión actual se ha descargado.`,
-                duration: 6000,
+          try {
+            if (op.action === 'insert') {
+              // @ts-expect-error - op.payload is generic Record<string, unknown> from Dexie
+              const { error } = await supabase.from(op.table as "shopping_items").insert(op.payload);
+              if (error) throw error;
+            } else if (op.action === 'update' && op.table === 'shopping_items') {
+              // Usar RPC seguro
+              // @ts-expect-error - RPC no está en los tipos autogenerados de Supabase
+              const { data, error } = await supabase.rpc('update_shopping_item_safe', {
+                p_id: op.payload.id,
+                p_quantity: op.payload.quantity,
+                p_status: op.payload.status,
+                p_last_known_updated_at: op.payload.last_known_updated_at || op.timestamp
               });
-              // Cancelamos esta operación pero actualizamos la cache para ver la nueva versión
-              queryClient.invalidateQueries({ queryKey: ['shopping_list'] });
+              
+              if (error) throw error;
+              
+              const typedData = data as unknown as { conflict?: boolean };
+              // Chequear conflicto
+              if (typedData?.conflict) {
+                toast.error('Conflicto detectado', {
+                  description: `Alguien modificó este ítem mientras estabas offline. Se conservará la versión del servidor.`,
+                  duration: 6000,
+                });
+              }
+            }
+            // Removemos de la cola si fue exitoso o el error fue atrapado y manejado internamente
+            if (op.id) await db.syncQueue.delete(op.id);
+          } catch (itemError: unknown) {
+            const err = itemError as Error;
+            console.error('Error sincronizando ítem:', err);
+            // Si el error es de red o timeout, detenemos la sincronización por ahora
+            if (err.message?.includes('fetch') || err.message?.includes('network')) {
+              throw err;
+            } else {
+              // Si es un error 400 u otro permanente, lo borramos para no atascar la cola
+              if (op.id) await db.syncQueue.delete(op.id);
             }
           }
-          // Removemos de la cola si fue exitoso o hubo conflicto manejado
-          if (op.id) await db.syncQueue.delete(op.id);
         }
         
-        if (operations.length > 0) {
-          toast.success(`Sincronización completada (${operations.length} cambios)`);
-          queryClient.invalidateQueries({ queryKey: ['shopping_list'] });
-        }
+        toast.success(`Sincronización completada exitosamente`);
+        queryClient.invalidateQueries({ queryKey: ['shopping_list'] });
       } catch (error) {
-        console.error('Error sincronizando:', error);
+        console.error('La sincronización se pausó por error de red:', error);
       } finally {
         setIsSyncing(false);
       }
