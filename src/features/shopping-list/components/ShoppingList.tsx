@@ -27,6 +27,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
 
   const [search, setSearch] = useState("");
   const [conflictProduct, setConflictProduct] = useState<{name: string, category: string, existingItem: ShoppingItemType} | null>(null);
+  const [isGridOpen, setIsGridOpen] = useState(false);
 
   const handleAdd = async (name: string, category: string) => {
     try {
@@ -110,171 +111,201 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   }
 
   return (
-    <div className="pb-32 overflow-x-hidden flex flex-col min-h-full">
+    <div className="pb-32 flex flex-col min-h-full">
       <StatsRow 
         pendingCount={pendingItems.length} 
         completedCount={completedItems.length} 
         totalCount={items.length} 
       />
-      <div className="px-6 mb-6 sticky top-0 z-10 bg-background/80 backdrop-blur-md pt-2 pb-2">
-        <SearchInput 
-          value={search}  
-          onChange={setSearch} 
-          onClear={() => setSearch("")} 
-          placeholder="Buscar producto (si no está abajo)"
-          className="shadow-sm border border-border/50 bg-surface"
-        />
-      </div>
 
-      {search.trim() ? (
-        <div className="px-6 animate-in fade-in duration-200">
-          <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4">Resultados</h2>
-          
-          {filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center space-y-5">
-              <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
-                 <Plus size={32} />
-              </div>
-              <p className="text-text-secondary font-medium">No se encontró &quot;{search}&quot;</p>
-              <Button
-                onClick={() => handleAttemptAdd(search.trim())}
-                className="rounded-2xl shadow-md"
-              >
-                Agregar como nuevo
-              </Button>
+      <div className="flex flex-col gap-8 mt-4">
+        {/* PENDING ITEMS */}
+        <div>
+          <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4 px-2">Para comprar hoy ({pendingItems.length})</h2>
+          {pendingItems.length === 0 ? (
+            <div className="bg-surface/50 border border-dashed border-border rounded-2xl p-6 text-center mx-2">
+              <p className="text-text-tertiary text-sm font-medium">La lista está vacía. ¡Toca un rápido abajo para añadirlo!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-y-7 gap-x-3">
-              <button
-                onClick={() => handleAttemptAdd(search.trim())}
-                className="col-span-full mb-2 bg-primary/10 text-primary px-5 py-4 rounded-2xl font-semibold flex items-center gap-2 active:scale-95 transition-transform justify-center shadow-sm"
+            <AnimatePresence initial={false}>
+              {pendingItems.map(item => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  layout
+                >
+                  <ShoppingItem 
+                    item={item} 
+                    onUpdate={handleUpdate} 
+                    onDelete={handleDelete}
+                    availableProfiles={availableProfiles} 
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+        </div>
+
+        {/* COMPLETED ITEMS */}
+        {completedItems.length > 0 && (
+          <div>
+            <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4 px-2">Comprados ({completedItems.length})</h2>
+            <AnimatePresence initial={false}>
+              {completedItems.map(item => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  layout
+                >
+                  <ShoppingItem 
+                    item={item} 
+                    onUpdate={handleUpdate} 
+                    onDelete={handleDelete}
+                    availableProfiles={availableProfiles} 
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {/* FIXED BOTTOM BAR */}
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+64px)] w-full max-w-md mx-auto left-0 right-0 z-20 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+        
+        {/* Horizontal Chips */}
+        {frequentProducts.length > 0 && (
+          <div className="flex overflow-x-auto gap-2 mb-3 pb-1 scrollbar-hide -mx-2 px-2">
+            {frequentProducts.slice(0, 8).map(prod => {
+              const isPending = pendingItems.some(i => i.name.toLowerCase() === prod.name.toLowerCase());
+              const catInfo = CATEGORIES[prod.category as CategoryType] || CATEGORIES['otros'];
+              const Icon = catInfo.icon;
+              return (
+                <button 
+                  key={prod.name}
+                  onClick={() => handleAttemptAdd(prod.name, prod.category)} 
+                  className={`shrink-0 px-4 py-2 rounded-full border border-border/50 flex items-center gap-2 transition-transform active:scale-95 ${isPending ? 'bg-surface/50 opacity-50' : 'bg-surface shadow-sm'}`}
+                  disabled={isPending}
+                >
+                  <span className="text-lg flex items-center justify-center w-4 h-4"><Icon size={16} /></span>
+                  <span className="text-sm font-semibold">{prod.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Input Row */}
+        <div className="flex gap-2 items-center">
+          <button 
+            onClick={() => setIsGridOpen(true)} 
+            className="w-12 h-12 shrink-0 bg-primary/10 hover:bg-primary/20 text-primary rounded-2xl flex items-center justify-center transition-colors active:scale-95"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
+          </button>
+          
+          <form 
+            onSubmit={e => { 
+              e.preventDefault(); 
+              if(search.trim()) { 
+                handleAttemptAdd(search); 
+              } 
+            }} 
+            className="flex-1 relative"
+          >
+            <input 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Escribe un producto..."
+              className="w-full h-12 bg-surface rounded-2xl pl-4 pr-12 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/50 border border-border/50 shadow-sm"
+            />
+            {search.trim() ? (
+              <button 
+                type="submit" 
+                className="absolute right-1 top-1 w-10 h-10 bg-primary rounded-xl text-white flex items-center justify-center transition-transform active:scale-90"
+              >
+                <Plus size={20} strokeWidth={3} />
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                className="absolute right-1 top-1 w-10 h-10 text-text-tertiary flex items-center justify-center pointer-events-none"
               >
                 <Plus size={20} />
-                Agregar &quot;{search.trim()}&quot;
               </button>
-              
-              {filteredProducts.map((prod) => {
-                const catInfo = CATEGORIES[prod.category as CategoryType] || CATEGORIES['otros'];
-                const Icon = catInfo.icon;
-                const isPending = items.some(i => i.status === 'pending' && i.name.toLowerCase() === prod.name.toLowerCase());
-
-                return (
-                  <button
-                    key={prod.name}
-                    onClick={() => handleAttemptAdd(prod.name, prod.category)}
-                    className="flex flex-col items-center gap-2.5 active:scale-90 transition-transform group relative"
-                  >
-                    <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center ${catInfo.bgColor} ${catInfo.color} group-hover:scale-105 transition-transform shadow-sm relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <Icon size={28} strokeWidth={2} />
-                    </div>
-                    <span className="text-[12px] font-medium text-center text-text-primary leading-tight line-clamp-2">
-                      {prod.name}
-                    </span>
-                    {isPending && (
-                       <div className="absolute top-0 right-1 w-4 h-4 bg-primary rounded-full border-2 border-surface flex items-center justify-center shadow-sm">
-                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                       </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="px-6 flex flex-col gap-8">
-          <div>
-            <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4">Para comprar hoy ({pendingItems.length})</h2>
-            {pendingItems.length === 0 ? (
-               <div className="bg-surface/50 border border-dashed border-border rounded-2xl p-6 text-center">
-                 <p className="text-text-tertiary text-sm font-medium">La lista está vacía. ¡Toca un favorito abajo para añadirlo!</p>
-               </div>
-            ) : (
-              <AnimatePresence initial={false}>
-                {pendingItems.map(item => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    layout
-                  >
-                    <ShoppingItem 
-                      item={item} 
-                      onUpdate={handleUpdate} 
-                      onDelete={handleDelete}
-                      availableProfiles={availableProfiles} 
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
             )}
-          </div>
+          </form>
+        </div>
+      </div>
 
-          {frequentProducts.length > 0 && (
-            <div>
-              <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4">Tus Favoritos (Tocar para pedir)</h2>
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-y-7 gap-x-3">
-                {frequentProducts.map((prod) => {
-                  const catInfo = CATEGORIES[prod.category as CategoryType] || CATEGORIES['otros'];
-                  const Icon = catInfo.icon;
-                  const isPending = pendingItems.some(i => i.name.toLowerCase() === prod.name.toLowerCase());
+      {/* BOTTOM SHEET: GRID MODE */}
+      <AnimatePresence>
+        {isGridOpen && (
+          <motion.div 
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-50 bg-background flex flex-col"
+          >
+            <div className="pt-safe flex-1 flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/90 backdrop-blur-md sticky top-0 z-10">
+                <h2 className="text-xl font-bold text-text-primary">Frecuentes</h2>
+                <button 
+                  onClick={() => setIsGridOpen(false)}
+                  className="w-10 h-10 bg-surface rounded-full flex items-center justify-center text-text-secondary active:scale-90 transition-transform"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-4 pb-32">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                  {frequentProducts.map((prod) => {
+                    const catInfo = CATEGORIES[prod.category as CategoryType] || CATEGORIES['otros'];
+                    const Icon = catInfo.icon;
+                    const isPending = pendingItems.some(i => i.name.toLowerCase() === prod.name.toLowerCase());
 
-                  return (
-                    <button
-                      key={prod.name}
-                      onClick={() => handleAttemptAdd(prod.name, prod.category)}
-                      className="flex flex-col items-center gap-2.5 active:scale-90 transition-transform group relative"
-                    >
-                      <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center ${catInfo.bgColor} ${catInfo.color} group-hover:scale-105 transition-transform shadow-sm relative overflow-hidden ${isPending ? 'opacity-50 grayscale-[50%]' : ''}`}>
-                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Icon size={28} strokeWidth={2} />
-                      </div>
-                      <span className={`text-[12px] font-medium text-center leading-tight line-clamp-2 ${isPending ? 'text-text-tertiary' : 'text-text-primary'}`}>
-                        {prod.name}
-                      </span>
-                      {isPending && (
-                         <div className="absolute top-0 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-surface flex items-center justify-center shadow-sm">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                               <path d="M8.33333 2.5L3.75 7.08333L1.66667 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                         </div>
-                      )}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={prod.name}
+                        onClick={() => handleAttemptAdd(prod.name, prod.category)}
+                        className="flex flex-col items-center gap-3 active:scale-90 transition-transform group"
+                      >
+                        <div className={`w-20 h-20 rounded-[24px] flex items-center justify-center ${catInfo.bgColor} ${catInfo.color} group-hover:scale-105 transition-transform shadow-sm relative overflow-hidden ${isPending ? 'opacity-40 grayscale-[80%]' : ''}`}>
+                          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Icon size={34} strokeWidth={2} />
+                          {isPending && (
+                            <div className="absolute top-1 right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-surface flex items-center justify-center shadow-sm">
+                              <svg width="12" height="12" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <path d="M8.33333 2.5L3.75 7.08333L1.66667 5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[13px] font-semibold text-center leading-tight line-clamp-2 ${isPending ? 'text-text-tertiary' : 'text-text-primary'}`}>
+                          {prod.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          )}
-
-          {completedItems.length > 0 && (
-             <div>
-               <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4">Comprados ({completedItems.length})</h2>
-               <AnimatePresence initial={false}>
-                 {completedItems.map(item => (
-                   <motion.div
-                     key={item.id}
-                     initial={{ opacity: 0, height: 0 }}
-                     animate={{ opacity: 1, height: 'auto' }}
-                     exit={{ opacity: 0, height: 0 }}
-                     transition={{ duration: 0.2 }}
-                     layout
-                   >
-                     <ShoppingItem 
-                       item={item} 
-                       onUpdate={handleUpdate} 
-                       onDelete={handleDelete}
-                       availableProfiles={availableProfiles} 
-                     />
-                   </motion.div>
-                 ))}
-               </AnimatePresence>
-             </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Modal 
         isOpen={!!conflictProduct} 
