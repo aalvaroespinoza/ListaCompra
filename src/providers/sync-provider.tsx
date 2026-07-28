@@ -119,11 +119,13 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     syncQueue();
   }, [isOnline, pendingCount, isSyncing, supabase, queryClient]);
 
-  // Suscripción a notificaciones inteligentes
+  // Suscripción centralizada a Realtime por Hogar (Evita canales múltiples y fugas de memoria)
   useEffect(() => {
     if (!currentProfile?.household_id) return;
     
-    const channel = supabase.channel('smart-notifications')
+    // Canal estable único por household
+    const channel = supabase.channel(`household_${currentProfile.household_id}`)
+      // 1. Escuchar notificaciones
       .on(
         'postgres_changes',
         {
@@ -133,10 +135,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           filter: `household_id=eq.${currentProfile.household_id}`
         },
         (payload) => {
-          const notif = payload.new;
-          // No notificar al propio actor que hizo la acción
+          const notif = payload.new as Database['public']['Tables']['notifications']['Row'];
+          // Ignorar eventos generados por el propio usuario actual
           if (notif.actor_id !== currentProfile.id) {
-            // Buscar perfil del actor si es posible (simplificado aquí)
             toast.info('Actualización de la lista', {
               description: `Alguien ${notif.summary}`,
               position: 'top-center'
@@ -144,12 +145,73 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           }
         }
       )
+      // 2. Escuchar cambios en los items para mantener React Query sincronizado
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "shopping_items",
+          filter: `household_id=eq.${currentProfile.household_id}`,
+        },
+        (payload) => {
+          const queryKey = ["shopping_items", currentProfile.household_id];
+          type ShoppingItem = Database['public']['Tables']['shopping_items']['Row'];
+          
+          queryClient.setQueryData<ShoppingItem[]>(queryKey, (oldItems = []) => {
+            if (payload.eventType === 'INSERT') {
+              const newItem = payload.new as ShoppingItem;
+              // Evitar renderizados innecesarios e ignorar si fuimos nosotros y ya está en caché optimista
+              const exists = oldItems.findIndex(item => item.id === newItem.id);
+              if (exists !== -1) {
+                const currentLocalItem = oldItems[exists];
+                if (new Date(currentLocalItem.updated_at).getTime() >= new Date(newItem.updated_at).getTime()) {
+                  return oldItems; // No hay cambios reales o nuestra versión optimista es más reciente
+                }
+                const newItems = [...oldItems];
+                newItems[exists] = newItem;
+                return newItems;
+              }
+              return [newItem, ...oldItems];
+            }
+            if (payload.eventType === 'UPDATE') {
+              const updatedItem = payload.new as ShoppingItem;
+              if (updatedItem.deleted_at) {
+                return oldItems.filter(item => item.id !== updatedItem.id);
+              }
+              const exists = oldItems.findIndex(item => item.id === updatedItem.id);
+              if (exists !== -1) {
+                const currentLocalItem = oldItems[exists];
+                if (new Date(currentLocalItem.updated_at).getTime() > new Date(updatedItem.updated_at).getTime()) {
+                  return oldItems;
+                }
+                // Prevenir renderizados si es idéntico a lo que tenemos
+                if (currentLocalItem.updated_at === updatedItem.updated_at && currentLocalItem.status === updatedItem.status) {
+                  return oldItems;
+                }
+                const newItems = [...oldItems];
+                newItems[exists] = updatedItem;
+                return newItems;
+              } else {
+                const newArr = [updatedItem, ...oldItems];
+                return newArr.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              }
+            }
+            if (payload.eventType === 'DELETE') {
+              return oldItems.filter(item => item.id !== payload.old.id);
+            }
+            return oldItems;
+          });
+          
+          queryClient.invalidateQueries({ queryKey: ["frequent_products", currentProfile.household_id] });
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentProfile]);
+  }, [supabase, currentProfile, queryClient]);
 
   return (
     <SyncContext.Provider value={{ isOnline, pendingCount }}>

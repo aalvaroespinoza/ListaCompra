@@ -50,73 +50,7 @@ export function useShoppingList(householdId: string | undefined) {
     enabled: !!householdId,
   });
 
-  // 2. Realtime Subscriptions con Actualización de Caché (Zero Refetching)
-  useEffect(() => {
-    if (!householdId) return;
-
-    const channelId = `public:shopping_items:${householdId}-${Math.random().toString(36).substring(7)}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "shopping_items",
-          filter: `household_id=eq.${householdId}`,
-        },
-        (payload) => {
-          queryClient.setQueryData<ShoppingItem[]>(queryKey, (oldItems = []) => {
-            if (payload.eventType === 'INSERT') {
-              const newItem = payload.new as ShoppingItem;
-              const exists = oldItems.findIndex(item => item.id === newItem.id);
-              if (exists !== -1) {
-                const currentLocalItem = oldItems[exists];
-                // Si la versión local es más reciente (optimistic update), preservarla
-                if (new Date(currentLocalItem.updated_at).getTime() >= new Date(newItem.updated_at).getTime()) {
-                  return oldItems;
-                }
-                const newItems = [...oldItems];
-                newItems[exists] = newItem;
-                return newItems;
-              }
-              return [newItem, ...oldItems];
-            }
-            if (payload.eventType === 'UPDATE') {
-              const updatedItem = payload.new as ShoppingItem;
-              if (updatedItem.deleted_at) {
-                return oldItems.filter(item => item.id !== updatedItem.id);
-              }
-              const exists = oldItems.findIndex(item => item.id === updatedItem.id);
-              if (exists !== -1) {
-                const currentLocalItem = oldItems[exists];
-                // Si hay un optimistic update pendiente más reciente, lo respetamos
-                if (new Date(currentLocalItem.updated_at).getTime() > new Date(updatedItem.updated_at).getTime()) {
-                  return oldItems;
-                }
-                const newItems = [...oldItems];
-                newItems[exists] = updatedItem;
-                return newItems;
-              } else {
-                const newArr = [updatedItem, ...oldItems];
-                return newArr.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-              }
-            }
-            if (payload.eventType === 'DELETE') {
-              return oldItems.filter(item => item.id !== payload.old.id);
-            }
-            return oldItems;
-          });
-          
-          queryClient.invalidateQueries({ queryKey: ["frequent_products", householdId] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [householdId, queryClient, supabase, queryKey]);
+  // 2. Realtime Subscriptions movidas a SyncProvider para evitar múltiples canales y fugas de memoria
 
   const addItemMutation = useMutation({
     mutationFn: async (newItem: Database['public']['Tables']['shopping_items']['Insert']) => {
