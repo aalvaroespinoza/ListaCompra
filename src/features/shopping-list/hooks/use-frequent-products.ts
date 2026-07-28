@@ -15,12 +15,13 @@ export function useFrequentProducts(householdId: string | undefined) {
         .select("*")
         .eq("household_id", householdId)
         .order("frequency", { ascending: false })
-        .limit(10); // Mostrar los 10 más habituales
+        .limit(50); // Aumentado para mostrar una grilla más rica
 
       if (error) throw error;
       return (data || []) as Array<{
         household_id: string;
         name: string;
+        category: string;
         frequency: number;
         last_purchased_at: string | null;
       }>;

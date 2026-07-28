@@ -1,79 +1,44 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Plus } from "lucide-react";
-import { IconButton } from "@/components/ui/IconButton";
-import { Input } from "@/components/ui/Input";
-import { useFrequentProducts } from '../hooks/use-frequent-products';
+import React, { useState } from 'react';
+import { Plus, Search } from "lucide-react";
+import { QuickAddSheet } from './QuickAddSheet';
+import { CategoryType } from '../constants';
 
 interface QuickInputProps {
   householdId: string;
-  onAdd: (name: string, category?: string) => void;
+  onAdd: (name: string, category: string) => void;
 }
 
 export function QuickInput({ householdId, onAdd }: QuickInputProps) {
-  const [value, setValue] = useState("");
-  const { data: frequentProducts = [] } = useFrequentProducts(householdId);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (value.trim()) {
-      onAdd(value.trim());
-      setValue("");
-    }
-  };
-
-  const handleQuickAdd = (name: string) => {
-    onAdd(name);
-    setValue(""); // Limpia por si estaba escribiendo
-  };
-
-  // Mostrar autocompletado si hay texto, si no, mostrar los más habituales (max 5)
-  const displayPills = value.trim().length > 0 
-    ? frequentProducts.filter(p => p.name.toLowerCase().includes(value.trim().toLowerCase()))
-    : frequentProducts.slice(0, 5);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
-    <div 
-      className="fixed bottom-[5.5rem] w-full max-w-md px-4 pointer-events-none z-20"
-      style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
-    >
-      {/* Compras habituales / Sugerencias */}
-      {displayPills.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide pointer-events-auto">
-          {displayPills.map((prod) => (
-            <button
-              key={prod.name}
-              onClick={() => handleQuickAdd(prod.name)}
-              className="shrink-0 bg-surface/90 backdrop-blur-md border border-border px-4 py-1.5 rounded-full text-sm font-medium text-text-primary shadow-sm active:scale-95 transition-transform"
-            >
-              {prod.name} <Plus size={14} className="inline ml-1 text-primary" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Input de Agregar */}
-      <form 
-        onSubmit={handleSubmit} 
-        className="flex gap-2 pointer-events-auto bg-surface/90 backdrop-blur-md p-2 rounded-2xl shadow-ios border border-border"
+    <>
+      <div 
+        className="fixed bottom-[5.5rem] w-full max-w-md px-4 z-20"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
       >
-        <Input 
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Agregar producto..." 
-          className="border-none bg-surface-hover h-12 shadow-none focus:ring-0 focus:bg-surface text-[16px]"
-        />
-        <IconButton 
-          type="submit" 
-          variant="primary" 
-          size="lg" 
-          className="h-12 w-12 rounded-xl shrink-0" 
-          disabled={!value.trim()}
+        <button
+          onClick={() => setIsSheetOpen(true)}
+          className="w-full flex items-center gap-3 bg-surface/80 backdrop-blur-xl p-3 pl-4 rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-white/20 active:scale-[0.98] transition-transform group"
         >
-          <Plus size={24} />
-        </IconButton>
-      </form>
-    </div>
+          <div className="bg-primary text-white p-2 rounded-xl group-hover:scale-105 transition-transform">
+            <Plus size={24} />
+          </div>
+          <span className="text-gray-500 font-medium text-[16px]">
+            Agregar a la lista...
+          </span>
+          <Search size={20} className="ml-auto text-gray-400 mr-2" />
+        </button>
+      </div>
+
+      <QuickAddSheet 
+        householdId={householdId}
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        onAdd={onAdd}
+      />
+    </>
   );
 }

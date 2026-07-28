@@ -111,6 +111,7 @@ export interface Database {
         Row: {
           household_id: string;
           name: string;
+          category: string;
           frequency: number;
           last_purchased_at: string | null;
         }

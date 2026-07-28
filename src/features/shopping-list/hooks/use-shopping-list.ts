@@ -75,7 +75,8 @@ export function useShoppingList(householdId: string | undefined) {
   // 3. Mutaciones con Invalidación
   const addItemMutation = useMutation({
     mutationFn: async (newItem: Partial<ShoppingItem>) => {
-      const { data, error } = await supabase
+
+      const { data, error } = await (supabase as any)
         .from("shopping_items")
         .insert([newItem])
         .select()
@@ -102,7 +103,8 @@ export function useShoppingList(householdId: string | undefined) {
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ShoppingItem> }) => {
-      const { data, error } = await supabase
+
+      const { data, error } = await (supabase as any)
         .from("shopping_items")
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
@@ -128,7 +130,8 @@ export function useShoppingList(householdId: string | undefined) {
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
       // Soft delete para mantener historial
-      const { error } = await supabase
+
+      const { error } = await (supabase as any)
         .from("shopping_items")
         .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
