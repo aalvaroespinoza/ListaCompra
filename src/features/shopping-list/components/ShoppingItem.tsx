@@ -6,7 +6,7 @@ import { Check, Plus, Edit2, Trash2, Minus } from 'lucide-react';
 import { ShoppingItem as ItemType } from '../hooks/use-shopping-list';
 import { getCategoryIcon } from '../utils/category-icons';
 import { Avatar } from '@/components/ui/Avatar';
-import { FAMILY_PROFILES } from '@/hooks/use-current-profile';
+import { useCurrentProfile } from '@/hooks/use-current-profile';
 import { formatDateRelative } from '@/utils/dates';
 
 interface ShoppingItemProps {
@@ -16,6 +16,7 @@ interface ShoppingItemProps {
 }
 
 export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
+  const { availableProfiles } = useCurrentProfile();
   const controls = useAnimation();
   const [isEditingQuantity, setIsEditingQuantity] = useState(false);
   const [quantityStr, setQuantityStr] = useState(item.quantity.toString());
@@ -116,7 +117,7 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
       <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.4}
+        dragElastic={0.2}
         onDragEnd={handleDragEnd}
         animate={controls}
         initial={{ x: 0 }}
@@ -160,7 +161,7 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
         {item.status === 'completed' ? (
           (() => {
             const buyerId = item.updated_by || item.created_by;
-            const buyer = FAMILY_PROFILES.find(p => p.id === buyerId) || FAMILY_PROFILES[0];
+            const buyer = availableProfiles.find(p => p.id === buyerId) || availableProfiles[0] || { display_name: 'Usuario', color: '#888' };
             const displayDate = item.purchased_at ? formatDateRelative(item.purchased_at) : 'Hoy';
             return (
               <div className="shrink-0 flex items-center gap-2">
@@ -179,7 +180,8 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
             {isEditingQuantity ? (
               <input 
                 autoFocus
-                type="number"
+                type="text"
+                pattern="[0-9]*"
                 inputMode="numeric"
                 value={quantityStr}
                 onChange={(e) => setQuantityStr(e.target.value)}
@@ -192,21 +194,21 @@ export function ShoppingItem({ item, onUpdate, onDelete }: ShoppingItemProps) {
                 <button 
                   onClick={handleMinusOne}
                   disabled={item.quantity <= 1}
-                  className="w-7 h-7 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-surface-active active:bg-surface-hover transition-colors"
+                  className="w-9 h-9 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-surface-active active:bg-surface-hover transition-colors active:scale-95"
                 >
-                  <Minus size={16} />
+                  <Minus size={18} />
                 </button>
                 <span 
                   onClick={() => setIsEditingQuantity(true)} 
-                  className="min-w-[1.5rem] text-center font-bold text-text-primary px-1"
+                  className="min-w-[1.5rem] text-center font-bold text-text-primary px-1 cursor-pointer active:scale-95 transition-transform"
                 >
                   {item.quantity}
                 </span>
                 <button 
                   onClick={handleAddOne}
-                  className="w-7 h-7 flex items-center justify-center text-primary rounded-lg hover:bg-primary/10 active:bg-primary/20 transition-colors"
+                  className="w-9 h-9 flex items-center justify-center text-primary rounded-lg hover:bg-primary/10 active:bg-primary/20 transition-colors active:scale-95"
                 >
-                  <Plus size={16} />
+                  <Plus size={18} />
                 </button>
               </>
             )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/supabase";
@@ -26,9 +26,9 @@ export type ShoppingItem = {
 export function useShoppingList(householdId: string | undefined) {
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient() as SupabaseClient<Database>;
-  const queryKey = ["shopping_items", householdId];
+  const queryKey = React.useMemo(() => ["shopping_items", householdId], [householdId]);
 
-  // 1. Fetch de items activos (no borrados lógicamente)
+  // 1. Fetch de items activos
   const { data: items = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
@@ -46,7 +46,7 @@ export function useShoppingList(householdId: string | undefined) {
     enabled: !!householdId,
   });
 
-  // 2. Realtime Subscriptions (Suscripción a WebSockets de Supabase)
+  // 2. Realtime Subscriptions con Actualización de Caché (Zero Refetching)
   useEffect(() => {
     if (!householdId) return;
 
@@ -56,15 +56,42 @@ export function useShoppingList(householdId: string | undefined) {
       .on(
         "postgres_changes",
         {
-          event: "*", // INSERT, UPDATE, DELETE
+          event: "*",
           schema: "public",
           table: "shopping_items",
           filter: `household_id=eq.${householdId}`,
         },
-        () => {
-          // Optimización: invalidar la cache forzará un refetch reactivo.
-          // Como React Query maneja el estado global, esto sincroniza toda la app.
-          queryClient.invalidateQueries({ queryKey: ["shopping_items", householdId] });
+        (payload) => {
+          queryClient.setQueryData<ShoppingItem[]>(queryKey, (oldItems = []) => {
+            if (payload.eventType === 'INSERT') {
+              const newItem = payload.new as ShoppingItem;
+              // Evitar duplicados si la mutación optimista local ya lo agregó (o fue reemplazado)
+              if (oldItems.some(item => item.id === newItem.id)) return oldItems;
+              return [newItem, ...oldItems];
+            }
+            if (payload.eventType === 'UPDATE') {
+              const updatedItem = payload.new as ShoppingItem;
+              // Si es un soft-delete, lo quitamos de la caché local
+              if (updatedItem.deleted_at) {
+                return oldItems.filter(item => item.id !== updatedItem.id);
+              }
+              const exists = oldItems.some(item => item.id === updatedItem.id);
+              if (exists) {
+                return oldItems.map(item => item.id === updatedItem.id ? updatedItem : item);
+              } else {
+                // Si fue restaurado y no estaba en caché
+                const newArr = [updatedItem, ...oldItems];
+                return newArr.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              }
+            }
+            if (payload.eventType === 'DELETE') {
+              return oldItems.filter(item => item.id !== payload.old.id);
+            }
+            return oldItems;
+          });
+          
+          // El historial depende de cálculos SQL (frecuencia, fechas), así que ese sí lo refetchamos
+          queryClient.invalidateQueries({ queryKey: ["frequent_products", householdId] });
         }
       )
       .subscribe();
@@ -72,69 +99,81 @@ export function useShoppingList(householdId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [householdId, queryClient, supabase]);
+  }, [householdId, queryClient, supabase, queryKey]);
 
-  // 3. Mutaciones con Invalidación
+  // 3. Mutaciones con Optimistic Updates
   const addItemMutation = useMutation({
     mutationFn: async (newItem: Database['public']['Tables']['shopping_items']['Insert']) => {
-
       const { data, error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error: El SDK de Supabase infiere 'never' para 'shopping_items' porque el tipo Database generado parece incompleto internamente.
+        // @ts-expect-error: Infiere 'never' internamente en el tipo generado
         .insert([newItem])
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return data as ShoppingItem;
     },
-    // Optistic UI & Soporte Offline Básico (Mantiene la UI rápida)
     onMutate: async (newItem) => {
       await queryClient.cancelQueries({ queryKey });
       const previousItems = queryClient.getQueryData<ShoppingItem[]>(queryKey);
+      const tempId = 'temp-' + Date.now();
+      const optimisticItem = { 
+        ...newItem, 
+        id: tempId, 
+        status: 'pending', 
+        created_at: new Date().toISOString() 
+      } as ShoppingItem;
+      
       queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => [
-        { ...newItem, id: 'temp-' + Date.now(), status: 'pending', created_at: new Date().toISOString() } as ShoppingItem,
+        optimisticItem,
         ...(old || [])
       ]);
-      return { previousItems };
+      return { previousItems, tempId };
+    },
+    onSuccess: (realItem, variables, context) => {
+      // Reemplazamos el ID temporal por el UUID real devuelto por la DB
+      queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => 
+        (old || []).map(item => item.id === context?.tempId ? realItem : item)
+      );
     },
     onError: (err, newItem, context) => {
-      // Revertir si hay conflicto offline/online
       if (context?.previousItems) queryClient.setQueryData(queryKey, context.previousItems);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["frequent_products", householdId] });
+    },
   });
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Database['public']['Tables']['shopping_items']['Update'] }) => {
-
       const { data, error } = await supabase
         .from("shopping_items")
-        // @ts-expect-error: Infiere 'never' (mismo problema con el tipo Database de Supabase)
+        // @ts-expect-error: Infiere 'never'
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return data as ShoppingItem;
     },
     onMutate: async ({ id, updates }) => {
       await queryClient.cancelQueries({ queryKey });
       const previousItems = queryClient.getQueryData<ShoppingItem[]>(queryKey);
       queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => 
-        (old || []).map(item => item.id === id ? { ...item, ...updates } : item)
+        (old || []).map(item => item.id === id ? { ...item, ...updates, updated_at: new Date().toISOString() } : item)
       );
       return { previousItems };
     },
     onError: (err, variables, context) => {
       if (context?.previousItems) queryClient.setQueryData(queryKey, context.previousItems);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["frequent_products", householdId] });
+    },
   });
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete para mantener historial
-
       const { error } = await supabase
         .from("shopping_items")
         // @ts-expect-error: Infiere 'never'
@@ -142,7 +181,20 @@ export function useShoppingList(householdId: string | undefined) {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousItems = queryClient.getQueryData<ShoppingItem[]>(queryKey);
+      queryClient.setQueryData<ShoppingItem[]>(queryKey, (old) => 
+        (old || []).filter(item => item.id !== id)
+      );
+      return { previousItems };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousItems) queryClient.setQueryData(queryKey, context.previousItems);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["frequent_products", householdId] });
+    },
   });
 
   return {

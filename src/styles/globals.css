@@ -101,6 +101,16 @@ body {
   padding-right: env(safe-area-inset-right);
   /* Prevent tap highlight on mobile Safari */
   -webkit-tap-highlight-color: transparent;
+  /* Make it feel native, no text selection unless in input */
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
+}
+
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 @utility pb-safe {
