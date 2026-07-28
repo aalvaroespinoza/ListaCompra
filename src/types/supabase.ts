@@ -127,6 +127,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string;
+          household_id: string;
+          actor_id: string;
+          action_type: 'added' | 'completed' | 'deleted';
+          item_count: number;
+          summary: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          household_id: string;
+          actor_id: string;
+          action_type: 'added' | 'completed' | 'deleted';
+          item_count: number;
+          summary: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          household_id?: string;
+          actor_id?: string;
+          action_type?: 'added' | 'completed' | 'deleted';
+          item_count?: number;
+          summary?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       frequent_products: {
@@ -155,7 +185,18 @@ export type Database = {
       };
     };
     Functions: {
-      [_ in never]: never;
+      update_shopping_item_safe: {
+        Args: {
+          p_id: string;
+          p_quantity?: number | null;
+          p_status?: string | null;
+          p_last_known_updated_at?: string | null;
+        };
+        Returns: {
+          conflict: boolean;
+          success: boolean;
+        };
+      };
     };
     Enums: {
       [_ in never]: never;

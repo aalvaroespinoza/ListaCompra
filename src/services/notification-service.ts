@@ -39,8 +39,7 @@ export const NotificationService = {
         else if (notif.action === 'completed') summary = `completó ${notif.itemCount} producto${notif.itemCount > 1 ? 's' : ''}`;
         else summary = `eliminó ${notif.itemCount} producto${notif.itemCount > 1 ? 's' : ''}`;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await supabase.from('notifications' as any).insert({
+        await supabase.from('notifications').insert({
           household_id: householdId,
           actor_id: userId,
           action_type: notif.action,

@@ -73,19 +73,18 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
               if (error) throw error;
             } else if (op.action === 'update' && op.table === 'shopping_items') {
               // Usar RPC seguro
-              // @ts-expect-error - RPC no está en los tipos autogenerados de Supabase
+              const payload = op.payload as { id: string; quantity?: number; status?: string; last_known_updated_at?: string };
               const { data, error } = await supabase.rpc('update_shopping_item_safe', {
-                p_id: op.payload.id,
-                p_quantity: op.payload.quantity,
-                p_status: op.payload.status,
-                p_last_known_updated_at: op.payload.last_known_updated_at || op.timestamp
+                p_id: payload.id,
+                p_quantity: payload.quantity,
+                p_status: payload.status,
+                p_last_known_updated_at: payload.last_known_updated_at || op.timestamp
               });
               
               if (error) throw error;
               
-              const typedData = data as unknown as { conflict?: boolean };
               // Chequear conflicto
-              if (typedData?.conflict) {
+              if (data?.conflict) {
                 toast.error('Conflicto detectado', {
                   description: `Alguien modificó este ítem mientras estabas offline. Se conservará la versión del servidor.`,
                   duration: 6000,
