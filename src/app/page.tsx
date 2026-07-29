@@ -15,12 +15,10 @@ import { toast } from "sonner";
 import { HistoryList } from "@/features/statistics/components/HistoryList";
 import { FrequentGrid } from "@/features/shopping-list/components/FrequentGrid";
 import { AvatarPicker } from "@/components/shared/AvatarPicker";
-import { BottomSheet } from "@/components/ui/BottomSheet";
 
 export default function HomeWireframe() {
   const [activeTab, setActiveTab] = useState("list");
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [showFrequents, setShowFrequents] = useState(false);
   const { currentProfile, isLoading: isProfileLoading, changeProfile, clearProfile, availableProfiles } = useCurrentProfile();
 
   // Loading state 
@@ -177,15 +175,9 @@ export default function HomeWireframe() {
         </div>
       ) : activeTab === "history" ? (
         <HistoryList householdId={currentProfile.household_id} />
-      ) : null}
-
-      <BottomSheet 
-        isOpen={showFrequents} 
-        onClose={() => setShowFrequents(false)}
-        title="Productos Frecuentes"
-      >
+      ) : activeTab === "frequent" ? (
         <FrequentGrid householdId={currentProfile.household_id} userId={currentProfile.id} />
-      </BottomSheet>
+      ) : null}
 
       <BottomNavigation
         items={[
@@ -207,8 +199,8 @@ export default function HomeWireframe() {
             id: "frequent",
             label: "Frecuentes",
             icon: <Star size={24} />,
-            isActive: showFrequents,
-            onClick: () => setShowFrequents(true)
+            isActive: activeTab === "frequent",
+            onClick: () => setActiveTab("frequent")
           },
           {
             id: "settings",
