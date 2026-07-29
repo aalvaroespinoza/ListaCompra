@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function AnonSessionProvider({ children }: { children: React.ReactNode }) {
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -18,8 +17,6 @@ export function AnonSessionProvider({ children }: { children: React.ReactNode })
         }
       } catch (error) {
         console.error("Error signing in anonymously:", error);
-      } finally {
-        if (mounted) setIsReady(true);
       }
     };
 

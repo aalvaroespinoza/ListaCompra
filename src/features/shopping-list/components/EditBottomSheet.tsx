@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ShoppingItem as ShoppingItemType } from "../hooks/use-shopping-list";
 import { CATEGORIES, CATEGORY_ORDER, CategoryType } from "../constants";
@@ -13,19 +13,20 @@ interface EditBottomSheetProps {
 }
 
 export function EditBottomSheet({ isOpen, onClose, item, onUpdate }: EditBottomSheetProps) {
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<CategoryType>("otros");
-  const [quantity, setQuantity] = useState("1");
-  const [unit, setUnit] = useState("");
+  const [name, setName] = useState(() => item?.name || "");
+  const [category, setCategory] = useState<CategoryType>(() => (item?.category as CategoryType) || "otros");
+  const [quantity, setQuantity] = useState(() => item?.quantity.toString() || "1");
+  const [unit, setUnit] = useState(() => item?.unit || "");
 
-  useEffect(() => {
-    if (item && isOpen) {
-      setName(item.name);
-      setCategory((item.category as CategoryType) || "otros");
-      setQuantity(item.quantity.toString());
-      setUnit(item.unit || "");
-    }
-  }, [item, isOpen]);
+  const [prevItemId, setPrevItemId] = useState<string | null>(item?.id || null);
+
+  if (item && item.id !== prevItemId) {
+    setPrevItemId(item.id);
+    setName(item.name);
+    setCategory((item.category as CategoryType) || "otros");
+    setQuantity(item.quantity.toString());
+    setUnit(item.unit || "");
+  }
 
   const handleSave = () => {
     if (!item || !name.trim()) return;

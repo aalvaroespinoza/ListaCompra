@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Settings, Clock, Star, MoreHorizontal, Users, ShoppingBag } from "lucide-react";
+import { Settings, Clock, Star, ShoppingBag } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Header } from "@/components/layout/Header";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
