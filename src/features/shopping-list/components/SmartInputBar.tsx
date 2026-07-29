@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus } from "lucide-react";
 import { CATEGORIES, CategoryType } from "../constants";
+import { useViewportHeight } from "@/hooks/use-viewport-height";
 import type { ShoppingItem } from "../hooks/use-shopping-list";
 
 interface SmartInputBarProps {
@@ -14,6 +15,7 @@ interface SmartInputBarProps {
 
 export function SmartInputBar({ frequentProducts, pendingItems, onAttemptAdd, onOpenGrid }: SmartInputBarProps) {
   const [search, setSearch] = useState("");
+  const { keyboardOffset } = useViewportHeight();
 
   const filteredFrequent = useMemo(() => {
     if (!search.trim()) return frequentProducts.slice(0, 8);
@@ -37,7 +39,10 @@ export function SmartInputBar({ frequentProducts, pendingItems, onAttemptAdd, on
   };
 
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+64px)] w-full max-w-md mx-auto left-0 right-0 z-20 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+    <div 
+      className="fixed w-full max-w-md mx-auto left-0 right-0 z-20 bg-background/95 backdrop-blur-xl border-t border-border px-4 py-3 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] transition-all"
+      style={{ bottom: `calc(env(safe-area-inset-bottom) + 64px + ${keyboardOffset}px)` }}
+    >
       
       {filteredFrequent.length > 0 && (
         <div className="flex overflow-x-auto gap-2 mb-3 pb-1 scrollbar-hide -mx-2 px-2">
@@ -79,7 +84,7 @@ export function SmartInputBar({ frequentProducts, pendingItems, onAttemptAdd, on
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Escribe un producto..."
-            className="w-full h-12 bg-surface rounded-2xl pl-4 pr-12 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary/50 border border-border/50 shadow-sm"
+            className="w-full h-12 bg-surface rounded-2xl pl-4 pr-12 text-[16px] focus:outline-none focus:ring-2 focus:ring-primary/50 border border-border/50 shadow-sm"
           />
           {search.trim() ? (
             <button 

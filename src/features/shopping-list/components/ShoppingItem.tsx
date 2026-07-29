@@ -190,7 +190,7 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
                 onChange={(e) => setQuantityStr(e.target.value)}
                 onBlur={submitQuantity}
                 onKeyDown={(e) => e.key === 'Enter' && submitQuantity()}
-                className="w-12 bg-transparent text-center font-bold focus:outline-none text-primary"
+                className="w-12 bg-transparent text-[16px] text-center font-bold focus:outline-none text-primary"
               />
             ) : (
               <>

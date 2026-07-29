@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import { cn } from "@/utils/cn";
+import { useViewportHeight } from "@/hooks/use-viewport-height";
 
 export interface BottomNavItem {
   id: string;
@@ -14,14 +17,17 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
 }
 
 export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
-  ({ className, items, ...props }, ref) => {
+  ({ className, items, style, ...props }, ref) => {
+    const { keyboardOffset } = useViewportHeight();
+
     return (
       <nav
         ref={ref}
         className={cn(
-          "fixed bottom-0 w-full max-w-md bg-surface/85 backdrop-blur-xl border-t border-border pb-safe z-30",
+          "fixed w-full max-w-md bg-surface/85 backdrop-blur-xl border-t border-border pb-safe z-30",
           className
         )}
+        style={{ bottom: `${keyboardOffset}px`, ...style }}
         {...props}
       >
         <ul className="flex items-center justify-around h-16 px-2">
