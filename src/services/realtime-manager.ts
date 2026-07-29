@@ -3,6 +3,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/types/supabase';
+import { shoppingQueryKeys } from '@/queries/shopping';
 
 export function useRealtimeManager(householdId: string | undefined, profileId: string | undefined) {
   const queryClient = useQueryClient();
@@ -39,7 +40,7 @@ export function useRealtimeManager(householdId: string | undefined, profileId: s
           filter: `household_id=eq.${householdId}`,
         },
         (payload) => {
-          const queryKey = ["shopping_items", householdId];
+          const queryKey = shoppingQueryKeys.items(householdId);
           type ShoppingItem = Database['public']['Tables']['shopping_items']['Row'];
           
           queryClient.setQueryData<ShoppingItem[]>(queryKey, (oldItems = []) => {
@@ -85,7 +86,7 @@ export function useRealtimeManager(householdId: string | undefined, profileId: s
             return oldItems;
           });
           
-          queryClient.invalidateQueries({ queryKey: ["frequent_products", householdId] });
+          queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.frequent(householdId) });
         }
       )
       .subscribe();
