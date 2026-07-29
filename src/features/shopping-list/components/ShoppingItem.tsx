@@ -152,23 +152,41 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
             );
           })()
         ) : (
-          <div className="shrink-0 flex items-center gap-1 bg-surface-active rounded-xl p-1 ml-2 border border-border shadow-sm">
-            <button 
-              onClick={handleMinusOne}
-              disabled={item.quantity <= 1}
-              className="w-8 h-8 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-background active:bg-background transition-colors active:scale-95"
-            >
-              <Minus size={16} />
-            </button>
-            <span className="min-w-[1.25rem] text-[15px] text-center font-bold text-text-primary px-1">
-              {item.quantity}
-            </span>
-            <button 
-              onClick={handleAddOne}
-              className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-background active:bg-background transition-colors active:scale-95"
-            >
-              <Plus size={16} />
-            </button>
+          <div className="shrink-0 flex items-center gap-3 pl-1">
+            <div className="shrink-0 flex items-center gap-1 bg-surface-active rounded-xl p-1 border border-border shadow-sm">
+              <button 
+                onClick={handleMinusOne}
+                disabled={item.quantity <= 1}
+                className="w-8 h-8 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-background active:bg-background transition-colors active:scale-95"
+              >
+                <Minus size={16} />
+              </button>
+              <span className="min-w-[1.25rem] text-[15px] text-center font-bold text-text-primary px-1">
+                {item.quantity}
+              </span>
+              <button 
+                onClick={handleAddOne}
+                className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-background active:bg-background transition-colors active:scale-95"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+            {item.creator ? (
+              <Avatar 
+                src={item.creator.avatar_url || undefined}
+                fallback={item.creator.display_name} 
+                size="sm" 
+                className="w-6 h-6 text-[10px]"
+                style={{ backgroundColor: item.creator.color, color: '#fff' }}
+              />
+            ) : (
+              <Avatar 
+                fallback="?" 
+                size="sm" 
+                className="w-6 h-6 text-[10px]"
+                style={{ backgroundColor: '#888', color: '#fff' }}
+              />
+            )}
           </div>
         )}
       </motion.div>
