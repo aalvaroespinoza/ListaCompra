@@ -112,16 +112,6 @@ export default function HomeWireframe() {
         }
         title={<span data-testid="header-title">{`¡Hola, ${currentProfile.display_name.split(' ')[0]}!`}</span>} 
         subtitle={today}
-        rightAction={
-          <div className="flex items-center gap-2">
-            <div className="bg-surface rounded-full p-2.5 shadow-sm border border-border/50 cursor-pointer">
-              <Users size={20} className="text-text-secondary" />
-            </div>
-            <div className="bg-surface rounded-full p-2.5 shadow-sm border border-border/50 cursor-pointer">
-              <MoreHorizontal size={20} className="text-text-secondary" />
-            </div>
-          </div>
-        }
       />
 
       {showAvatarPicker && (

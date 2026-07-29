@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, useAnimation, PanInfo } from 'framer-motion';
-import { Check, Plus, Edit2, Trash2, Minus } from 'lucide-react';
+import { Check, Plus, Trash2, Minus } from 'lucide-react';
 import { ShoppingItem as ItemType } from '../hooks/use-shopping-list';
 import { getCategoryIcon } from '../utils/category-icons';
 import { Avatar } from '@/components/ui/Avatar';
@@ -13,13 +13,12 @@ interface ShoppingItemProps {
   item: ItemType;
   onUpdate: (id: string, updates: Partial<ItemType>) => void;
   onDelete: (id: string) => void;
+  onEdit?: (item: ItemType) => void;
   availableProfiles: Profile[];
 }
 
-export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, onDelete, availableProfiles }: ShoppingItemProps) {
+export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, onDelete, onEdit, availableProfiles }: ShoppingItemProps) {
   const controls = useAnimation();
-  const [isEditingQuantity, setIsEditingQuantity] = useState(false);
-  const [quantityStr, setQuantityStr] = useState(item.quantity.toString());
 
   // Efecto háptico simulado (vibra en móviles compatibles al hacer snap)
   const triggerHaptic = () => {
@@ -29,15 +28,11 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
   };
 
   const handleDragEnd = (e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 60; // Píxeles para activar menú
+    const threshold = 40; // Píxeles para activar menú
     
-    if (info.offset.x > threshold) {
-      // Swipe hacia la derecha: Marcar / +1
-      controls.start({ x: 130 });
-      triggerHaptic();
-    } else if (info.offset.x < -threshold) {
-      // Swipe hacia la izquierda: Editar / Eliminar
-      controls.start({ x: -130 });
+    if (info.offset.x < -threshold) {
+      // Swipe hacia la izquierda: Eliminar
+      controls.start({ x: -70 });
       triggerHaptic();
     } else {
       // Regresa al centro
@@ -49,7 +44,8 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
     controls.start({ x: 0 });
   };
 
-  const handleComplete = () => {
+  const handleComplete = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     onUpdate(item.id, { 
       status: item.status === 'completed' ? 'pending' : 'completed',
       purchased_at: item.status === 'pending' ? new Date().toISOString() : null
@@ -57,67 +53,44 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
     closeMenu();
   };
 
-  const handleAddOne = () => {
+  const handleAddOne = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     onUpdate(item.id, { quantity: Number(item.quantity) + 1 });
     closeMenu();
   };
 
-  const handleMinusOne = () => {
+  const handleMinusOne = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (Number(item.quantity) > 1) {
       onUpdate(item.id, { quantity: Number(item.quantity) - 1 });
     }
     closeMenu();
   };
 
-  const handleDelete = () => {
+  const handleDelete = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     onDelete(item.id);
     closeMenu();
   };
 
-  // Manejo de cantidad manual
-  const submitQuantity = () => {
-    const num = Number(quantityStr);
-    if (!isNaN(num) && num > 0) {
-      onUpdate(item.id, { quantity: num });
-    } else {
-      setQuantityStr(item.quantity.toString()); // Revertir si es inválido
-    }
-    setIsEditingQuantity(false);
+  const handleEdit = () => {
+    if (onEdit) onEdit(item);
   };
 
   return (
-    <div className="relative w-full mb-3 rounded-2xl bg-surface-active overflow-hidden">
-      {/* CAPA TRASERA: Botones de Acción */}
-      <div className="absolute inset-0 flex justify-between items-center px-4">
-        {/* Lado Izquierdo (Aparecen al hacer swipe a la derecha) */}
-        <div className="flex gap-2">
-          <button 
-            onClick={handleComplete} 
-            className={`p-3 rounded-full text-white transition-colors ${item.status === 'completed' ? 'bg-text-secondary' : 'bg-success'}`}
-          >
-            <Check size={20} />
-          </button>
-          <button onClick={handleAddOne} className="p-3 rounded-full bg-primary text-white">
-            <Plus size={20} />
-          </button>
-        </div>
-
-        {/* Lado Derecho (Aparecen al hacer swipe a la izquierda) */}
-        <div className="flex gap-2">
-          <button onClick={() => setIsEditingQuantity(true)} className="p-3 rounded-full bg-warning text-white">
-            <Edit2 size={20} />
-          </button>
-          <button onClick={handleDelete} className="p-3 rounded-full bg-danger text-white">
-            <Trash2 size={20} />
-          </button>
-        </div>
+    <div className="relative w-full mb-3 rounded-2xl bg-danger/10 overflow-hidden">
+      {/* CAPA TRASERA: Botones de Acción (Solo Eliminar a la derecha) */}
+      <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+        <button onClick={handleDelete} className="p-3 w-[62px] flex justify-center items-center rounded-xl bg-danger text-white shadow-sm active:scale-95 transition-transform">
+          <Trash2 size={20} />
+        </button>
       </div>
 
       {/* CAPA FRONTAL: Tarjeta del producto */}
       <motion.div
         drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
+        dragConstraints={{ left: -70, right: 0 }}
+        dragElastic={0.1}
         onDragEnd={handleDragEnd}
         animate={controls}
         initial={{ x: 0 }}
@@ -125,8 +98,8 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
           ${item.status === 'completed' ? 'opacity-80 bg-surface-hover' : ''}
         `}
       >
-        <div className="flex items-center gap-4 overflow-hidden">
-          {/* Indicador Visual: Círculo de Check + Emoji Badge */}
+        <div className="flex items-center gap-4 overflow-hidden flex-1 cursor-pointer" onClick={handleEdit} role="button">
+          {/* Indicador Visual: Círculo de Check */}
           <div className="shrink-0 flex items-center gap-3">
             {item.status === 'completed' ? (
               <div 
@@ -149,7 +122,7 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
             </div>
           </div>
           
-          <div className="flex flex-col truncate justify-center min-w-0">
+          <div className="flex flex-col truncate justify-center min-w-0 pr-2">
             <span className={`text-[16px] truncate leading-tight ${item.status === 'completed' ? 'line-through text-success font-medium' : 'text-text-primary font-bold'}`}>
               {item.name}
             </span>
@@ -166,7 +139,7 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
             const buyer = availableProfiles.find(p => p.id === buyerId) || availableProfiles[0] || { display_name: 'Usuario', color: '#888' };
             const displayDate = item.purchased_at ? formatDateRelative(item.purchased_at) : 'Hoy';
             return (
-              <div className="shrink-0 flex items-center gap-2">
+              <div className="shrink-0 flex items-center gap-2 pl-2">
                 <span className="text-xs text-text-tertiary font-medium">{displayDate}</span>
                 <Avatar 
                   src={buyer.avatar_url || undefined}
@@ -179,42 +152,23 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
             );
           })()
         ) : (
-          <div className="shrink-0 flex items-center gap-1 bg-background rounded-xl p-1 ml-2 border border-border">
-            {isEditingQuantity ? (
-              <input 
-                autoFocus
-                type="text"
-                pattern="[0-9]*"
-                inputMode="numeric"
-                value={quantityStr}
-                onChange={(e) => setQuantityStr(e.target.value)}
-                onBlur={submitQuantity}
-                onKeyDown={(e) => e.key === 'Enter' && submitQuantity()}
-                className="w-12 bg-transparent text-[16px] text-center font-bold focus:outline-none text-primary"
-              />
-            ) : (
-              <>
-                <button 
-                  onClick={handleMinusOne}
-                  disabled={item.quantity <= 1}
-                  className="w-9 h-9 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-surface-active active:bg-surface-hover transition-colors active:scale-95"
-                >
-                  <Minus size={18} />
-                </button>
-                <span 
-                  onClick={() => setIsEditingQuantity(true)} 
-                  className="min-w-[1.5rem] text-center font-bold text-text-primary px-1 cursor-pointer active:scale-95 transition-transform"
-                >
-                  {item.quantity}
-                </span>
-                <button 
-                  onClick={handleAddOne}
-                  className="w-9 h-9 flex items-center justify-center text-primary rounded-lg hover:bg-primary/10 active:bg-primary/20 transition-colors active:scale-95"
-                >
-                  <Plus size={18} />
-                </button>
-              </>
-            )}
+          <div className="shrink-0 flex items-center gap-1 bg-surface-active rounded-xl p-1 ml-2 border border-border shadow-sm">
+            <button 
+              onClick={handleMinusOne}
+              disabled={item.quantity <= 1}
+              className="w-8 h-8 flex items-center justify-center text-text-secondary disabled:opacity-30 rounded-lg hover:bg-background active:bg-background transition-colors active:scale-95"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="min-w-[1.25rem] text-[15px] text-center font-bold text-text-primary px-1">
+              {item.quantity}
+            </span>
+            <button 
+              onClick={handleAddOne}
+              className="w-8 h-8 flex items-center justify-center text-primary rounded-lg hover:bg-background active:bg-background transition-colors active:scale-95"
+            >
+              <Plus size={16} />
+            </button>
           </div>
         )}
       </motion.div>

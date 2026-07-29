@@ -30,7 +30,5 @@ export function AnonSessionProvider({ children }: { children: React.ReactNode })
     };
   }, []);
 
-  if (!isReady) return null;
-
   return <>{children}</>;
 }

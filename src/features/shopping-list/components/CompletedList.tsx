@@ -10,10 +10,11 @@ interface CompletedListProps {
   availableProfiles: Profile[];
   onUpdate: (id: string, updates: Partial<ShoppingItem>) => void;
   onDelete: (id: string) => void;
+  onEdit: (item: ShoppingItem) => void;
   'data-testid'?: string;
 }
 
-export function CompletedList({ items, availableProfiles, onUpdate, onDelete, 'data-testid': testId }: CompletedListProps) {
+export function CompletedList({ items, availableProfiles, onUpdate, onDelete, onEdit, 'data-testid': testId }: CompletedListProps) {
   if (items.length === 0) return null;
 
   return (
@@ -33,6 +34,7 @@ export function CompletedList({ items, availableProfiles, onUpdate, onDelete, 'd
               item={item} 
               onUpdate={onUpdate} 
               onDelete={onDelete}
+              onEdit={onEdit}
               availableProfiles={availableProfiles} 
             />
           </motion.div>

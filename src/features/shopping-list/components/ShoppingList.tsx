@@ -13,6 +13,7 @@ import { PendingList } from "./PendingList";
 import { CompletedList } from "./CompletedList";
 import { SmartInputBar } from "./SmartInputBar";
 import { GridBottomSheet } from "./GridBottomSheet";
+import { EditBottomSheet } from "./EditBottomSheet";
 
 interface ShoppingListProps {
   householdId: string;
@@ -25,6 +26,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   const { availableProfiles } = useCurrentProfile();
 
   const [isGridOpen, setIsGridOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ShoppingItemType | null>(null);
 
   const handleAdd = async (name: string, category: string) => {
     if (!name.trim()) {
@@ -116,6 +118,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
           availableProfiles={availableProfiles} 
           onUpdate={handleUpdate} 
           onDelete={handleDelete} 
+          onEdit={setEditingItem}
           data-testid="pending-list"
         />
         <CompletedList 
@@ -123,6 +126,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
           availableProfiles={availableProfiles} 
           onUpdate={handleUpdate} 
           onDelete={handleDelete} 
+          onEdit={setEditingItem}
           data-testid="completed-list"
         />
       </div>
@@ -142,6 +146,13 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
         frequentProducts={frequentProducts} 
         pendingItems={pendingItems} 
         onAttemptAdd={handleAttemptAdd} 
+      />
+
+      <EditBottomSheet 
+        isOpen={!!editingItem} 
+        onClose={() => setEditingItem(null)} 
+        item={editingItem} 
+        onUpdate={handleUpdate} 
       />
     </div>
   );

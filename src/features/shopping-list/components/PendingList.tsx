@@ -10,10 +10,11 @@ interface PendingListProps {
   availableProfiles: Profile[];
   onUpdate: (id: string, updates: Partial<ShoppingItem>) => void;
   onDelete: (id: string) => void;
+  onEdit: (item: ShoppingItem) => void;
   'data-testid'?: string;
 }
 
-export function PendingList({ items, availableProfiles, onUpdate, onDelete, 'data-testid': testId }: PendingListProps) {
+export function PendingList({ items, availableProfiles, onUpdate, onDelete, onEdit, 'data-testid': testId }: PendingListProps) {
   return (
     <div data-testid={testId}>
       <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4 px-2">Para comprar hoy ({items.length})</h2>
@@ -36,6 +37,7 @@ export function PendingList({ items, availableProfiles, onUpdate, onDelete, 'dat
                 item={item} 
                 onUpdate={onUpdate} 
                 onDelete={onDelete}
+                onEdit={onEdit}
                 availableProfiles={availableProfiles} 
               />
             </motion.div>
