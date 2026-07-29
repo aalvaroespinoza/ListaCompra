@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
+import { profileRepository } from "@/repositories/profile-repository";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -20,13 +20,7 @@ export function AvatarPicker({ onClose }: { onClose?: () => void }) {
     const url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}`;
     
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase
-        .from('profiles')
-        .update({ avatar_url: url })
-        .eq('id', currentProfile.id);
-        
-      if (error) throw error;
+      await profileRepository.updateAvatar(currentProfile.id, url);
       
       changeProfile({ ...currentProfile, avatar_url: url });
       queryClient.invalidateQueries({ queryKey: ['profiles'] });

@@ -167,21 +167,49 @@ export class ShoppingListRepository {
     );
   }
 
+  async deleteHistoryByName(householdId: string, name: string): Promise<void> {
+    const { data, error } = await this.supabase
+      .from("shopping_items")
+      .select("id")
+      .eq("household_id", householdId)
+      .eq("name", name)
+      .eq("status", "completed");
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      await Promise.all(data.map(item => this.deleteItem(item.id)));
+    }
+  }
+
   // Métodos expuestos para la sincronización en background (SyncProvider)
   async syncInsert(payload: Database['public']['Tables']['shopping_items']['Insert']): Promise<void> {
     const { error } = await this.supabase.from("shopping_items").insert(payload);
     if (error) throw error;
   }
 
-  async syncUpdateSafe(payload: { id: string; quantity?: number; status?: string; last_known_updated_at?: string }, timestamp: string) {
-    const { data, error } = await this.supabase.rpc('update_shopping_item_safe', {
-      p_id: payload.id,
-      p_quantity: payload.quantity,
-      p_status: payload.status,
-      p_last_known_updated_at: payload.last_known_updated_at || timestamp
-    });
-    if (error) throw error;
-    return data;
+  async syncUpdateSafe(payload: any, timestamp: string) {
+    const { id, quantity, status, last_known_updated_at, ...rest } = payload;
+    let rpcResult = null;
+
+    if (quantity !== undefined || status !== undefined) {
+      const { data, error } = await this.supabase.rpc('update_shopping_item_safe', {
+        p_id: id,
+        p_quantity: quantity,
+        p_status: status,
+        p_last_known_updated_at: last_known_updated_at || timestamp
+      });
+      if (error) throw error;
+      rpcResult = data;
+    }
+
+    if (Object.keys(rest).length > 0) {
+      console.log("Sincronizando campos adicionales del item offline:", rest);
+      const { error } = await this.supabase.from("shopping_items").update(rest).eq("id", id);
+      if (error) throw error;
+    }
+
+    return rpcResult;
   }
 }
 
