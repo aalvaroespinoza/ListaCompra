@@ -15,7 +15,7 @@ export const Header = React.forwardRef<HTMLElement, HeaderProps>(
       <header
         ref={ref}
         className={cn(
-          "flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md sticky top-0 z-30 border-b border-transparent transition-colors pt-safe",
+          "flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md sticky top-0 z-30 border-b border-transparent transition-colors pt-[env(safe-area-inset-top)]",
           className
         )}
         {...props}

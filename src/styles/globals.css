@@ -88,6 +88,11 @@
   }
 }
 
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
 body {
   background-color: var(--background);
   color: var(--text-primary);
@@ -100,7 +105,13 @@ body {
   -webkit-touch-callout: none;
   user-select: none;
   touch-action: manipulation;
-  overscroll-behavior-y: none;
+}
+
+a, button, [role="button"], [role="tab"], summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 input, textarea {

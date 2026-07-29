@@ -11,7 +11,7 @@ export const PageContainer = React.forwardRef<HTMLDivElement, PageContainerProps
       <div
         ref={ref}
         className={cn(
-          "flex h-[100dvh] flex-col mx-auto w-full max-w-md relative bg-background shadow-sm sm:border-x border-border overflow-hidden",
+          "flex min-h-screen flex-col mx-auto w-full max-w-md relative bg-background shadow-sm sm:border-x border-border overflow-hidden",
           className
         )}
         {...props}
@@ -19,7 +19,7 @@ export const PageContainer = React.forwardRef<HTMLDivElement, PageContainerProps
         <main 
           className={cn(
             "flex-1 overflow-y-auto px-4",
-            withBottomNav ? "pb-24" : "pb-safe" // Extra padding if bottom nav is present
+            withBottomNav ? "pb-24" : "pb-[env(safe-area-inset-bottom)]" // Extra padding if bottom nav is present
           )}
         >
           {children}

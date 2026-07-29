@@ -24,7 +24,7 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
       <nav
         ref={ref}
         className={cn(
-          "fixed w-full max-w-md bg-surface/85 backdrop-blur-xl border-t border-border pb-safe z-30",
+          "fixed w-full max-w-md bg-surface/85 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)] z-30",
           className
         )}
         style={{ bottom: `${keyboardOffset}px`, ...style }}
