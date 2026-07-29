@@ -125,7 +125,15 @@ export type Database = {
           deleted_at?: string | null;
           client_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "shopping_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       notifications: {
         Row: {

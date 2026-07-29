@@ -19,6 +19,12 @@ export type ShoppingItem = {
   purchased_at: string | null;
   deleted_at: string | null;
   client_id?: string | null;
+  creator?: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    color: string;
+  };
 };
 
 export class ShoppingListRepository {
@@ -36,7 +42,15 @@ export class ShoppingListRepository {
     
     const { data, error } = await this.supabase
       .from("shopping_items")
-      .select("*")
+      .select(`
+        *,
+        creator:profiles!created_by(
+          id,
+          display_name,
+          avatar_url,
+          color
+        )
+      `)
       .eq("household_id", householdId)
       .is("deleted_at", null)
       .or(`status.eq.pending,purchased_at.gte.${fortyEightHoursAgo}`)
@@ -49,7 +63,15 @@ export class ShoppingListRepository {
   async fetchItemById(id: string): Promise<ShoppingItem | null> {
     const { data, error } = await this.supabase
       .from("shopping_items")
-      .select("*")
+      .select(`
+        *,
+        creator:profiles!created_by(
+          id,
+          display_name,
+          avatar_url,
+          color
+        )
+      `)
       .eq("id", id)
       .single();
     if (error) return null;
@@ -61,7 +83,15 @@ export class ShoppingListRepository {
     
     let query = this.supabase
       .from("shopping_items")
-      .select("*")
+      .select(`
+        *,
+        creator:profiles!created_by(
+          id,
+          display_name,
+          avatar_url,
+          color
+        )
+      `)
       .eq("household_id", householdId)
       .eq("status", "completed")
       .is("deleted_at", null)
