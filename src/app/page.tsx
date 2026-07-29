@@ -12,6 +12,8 @@ import { motion } from "framer-motion";
 import { ShoppingList } from "@/features/shopping-list/components/ShoppingList";
 import { db } from "@/lib/db";
 import { toast } from "sonner";
+import { HistoryList } from "@/features/statistics/components/HistoryList";
+import { FrequentGrid } from "@/features/shopping-list/components/FrequentGrid";
 
 export default function HomeWireframe() {
   const [activeTab, setActiveTab] = useState("list");
@@ -149,15 +151,11 @@ export default function HomeWireframe() {
             </button>
           </div>
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center p-12 text-center text-text-tertiary h-64">
-          <div className="bg-surface rounded-full p-4 shadow-sm mb-4">
-            {activeTab === "history" && <Clock size={32} className="opacity-50" />}
-            {activeTab === "frequent" && <Star size={32} className="opacity-50" />}
-          </div>
-          <p className="text-lg font-medium text-text-secondary">Próximamente</p>
-        </div>
-      )}
+      ) : activeTab === "history" ? (
+        <HistoryList householdId={currentProfile.household_id} />
+      ) : activeTab === "frequent" ? (
+        <FrequentGrid householdId={currentProfile.household_id} userId={currentProfile.id} />
+      ) : null}
 
       <BottomNavigation
         items={[

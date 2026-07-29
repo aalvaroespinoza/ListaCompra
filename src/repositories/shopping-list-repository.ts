@@ -46,6 +46,26 @@ export class ShoppingListRepository {
     return data as ShoppingItem[];
   }
 
+  async fetchPurchaseHistory(householdId: string, options?: { limit?: number }): Promise<ShoppingItem[]> {
+    if (!householdId) return [];
+    
+    let query = this.supabase
+      .from("shopping_items")
+      .select("*")
+      .eq("household_id", householdId)
+      .eq("status", "completed")
+      .is("deleted_at", null)
+      .order("purchased_at", { ascending: false });
+      
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as ShoppingItem[];
+  }
+
   async insertItem(newItem: Database['public']['Tables']['shopping_items']['Insert']): Promise<ShoppingItem> {
     const fallbackResult = { ...newItem, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ShoppingItem;
     
