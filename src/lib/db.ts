@@ -16,9 +16,15 @@ export interface DeadLetterOperation extends SyncOperation {
   failedAt: string;
 }
 
+export interface KeyValueEntry {
+  key: string;
+  value: string;
+}
+
 const db = new Dexie('ListaCompraDB') as Dexie & {
   syncQueue: EntityTable<SyncOperation, 'id'>;
   deadLetterQueue: EntityTable<DeadLetterOperation, 'id'>;
+  keyValueStore: EntityTable<KeyValueEntry, 'key'>;
 };
 
 db.version(1).stores({
@@ -28,6 +34,12 @@ db.version(1).stores({
 db.version(2).stores({
   syncQueue: '++id, action, table, timestamp',
   deadLetterQueue: '++id, action, table, timestamp'
+});
+
+db.version(3).stores({
+  syncQueue: '++id, action, table, timestamp',
+  deadLetterQueue: '++id, action, table, timestamp',
+  keyValueStore: 'key'
 });
 
 export { db };
