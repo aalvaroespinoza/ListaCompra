@@ -67,11 +67,11 @@ export function HistoryList({ householdId }: HistoryListProps) {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col truncate justify-center">
+                  <div className="flex flex-col truncate justify-center min-w-0">
                     <span className="text-[16px] truncate leading-tight text-text-primary font-bold">
                       {item.name}
                     </span>
-                    <span className="text-[13px] text-text-tertiary leading-tight mt-0.5">
+                    <span className="text-[13px] text-text-tertiary leading-tight mt-0.5 truncate">
                       {item.category || "Otros"} {item.unit ? `• ${item.quantity} ${item.unit}` : `• ${item.quantity}`}
                     </span>
                   </div>

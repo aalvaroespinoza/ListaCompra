@@ -23,8 +23,8 @@ export const Header = React.forwardRef<HTMLElement, HeaderProps>(
         <div className="flex items-center gap-3">
           {leftAction}
           {avatar && <div className="shrink-0">{avatar}</div>}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-xl font-bold tracking-tight text-text-primary leading-tight">
+          <div className="flex flex-col justify-center min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-text-primary leading-tight truncate">
               {title}
             </h1>
             {subtitle && (

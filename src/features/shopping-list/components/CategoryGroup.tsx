@@ -28,7 +28,7 @@ export function CategoryGroup({ category, items, onUpdate, onDelete, availablePr
         <div className={`p-1.5 rounded-[10px] ${catInfo.bgColor} ${catInfo.color}`}>
           <Icon size={18} strokeWidth={2.5} />
         </div>
-        <h3 className="font-semibold text-text-primary text-[15px] tracking-tight">
+        <h3 className="font-semibold text-text-primary text-[15px] tracking-tight min-w-0 truncate">
           {catInfo.label}
         </h3>
         <div className="ml-auto bg-surface-hover px-2 py-0.5 rounded-full text-xs font-medium text-text-secondary">

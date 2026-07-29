@@ -64,7 +64,7 @@ export function FrequentGrid({ householdId, userId }: FrequentGridProps) {
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm bg-primary/10 mb-3">
             {getCategoryIcon(product.name, product.category)}
           </div>
-          <span className="text-sm font-bold text-text-primary text-center leading-tight mb-1">
+          <span className="text-sm font-bold text-text-primary text-center leading-tight mb-1 line-clamp-2 break-words">
             {product.name}
           </span>
           <span className="text-xs text-text-tertiary">
