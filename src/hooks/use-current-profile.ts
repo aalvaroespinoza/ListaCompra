@@ -2,22 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { Profile } from "@/types/supabase";
+import { profileRepository } from "@/repositories/profile-repository";
+import type { LocalProfile } from "@/repositories/profile-repository";
 
-export type LocalProfile = Profile & {
-  household_id: string;
-};
+export type { LocalProfile };
 
 const STORAGE_KEY = "listacompra_current_profile";
 
 /**
  * Hook para manejar la sesión local del usuario de forma persistente.
- * Ahora utiliza Supabase real para obtener los perfiles.
+ * Delega el acceso a datos a ProfileRepository — no conoce Supabase directamente.
  */
 export function useCurrentProfile() {
-  const supabase = getSupabaseBrowserClient();
-  
   const [currentProfile, setCurrentProfile] = useState<LocalProfile | null>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -39,14 +35,7 @@ export function useCurrentProfile() {
 
   const { data: availableProfiles = [], isLoading: isProfilesLoading } = useQuery({
     queryKey: ['profiles'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-        
-      if (error) throw error;
-      return data as LocalProfile[];
-    }
+    queryFn: () => profileRepository.fetchAll(),
   });
 
   const [isLocalLoading, setIsLocalLoading] = useState(true);
