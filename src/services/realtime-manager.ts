@@ -3,7 +3,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/types/supabase';
-import { shoppingQueryKeys } from '@/queries/shopping';
+import { shoppingQueryKeys } from '@/features/shopping-list/queries/shopping';
 
 export function useRealtimeManager(householdId: string | undefined, profileId: string | undefined) {
   const queryClient = useQueryClient();

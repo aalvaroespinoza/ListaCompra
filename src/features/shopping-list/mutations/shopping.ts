@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Database } from "@/types/supabase";
 import { NotificationService } from "@/services/notification-service";
 import { shoppingListRepository, ShoppingItem } from "@/repositories/shopping-list-repository";
-import { shoppingQueryKeys } from "@/queries/shopping";
+import { shoppingQueryKeys } from "@/features/shopping-list/queries/shopping";
 
 export function useAddShoppingItem(householdId: string | undefined) {
   const queryClient = useQueryClient();

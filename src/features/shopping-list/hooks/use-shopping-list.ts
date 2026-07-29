@@ -1,11 +1,11 @@
 "use client";
 
-import { useShoppingItems } from "@/queries/shopping";
+import { useShoppingItems } from "../queries/shopping";
 import { 
   useAddShoppingItem, 
   useUpdateShoppingItem, 
   useDeleteShoppingItem 
-} from "@/mutations/shopping";
+} from "../mutations/shopping";
 import type { ShoppingItem } from "@/repositories/shopping-list-repository";
 
 export type { ShoppingItem };
