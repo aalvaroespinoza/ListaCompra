@@ -21,10 +21,19 @@ export interface KeyValueEntry {
   value: string;
 }
 
+export interface ConflictOperation {
+  id?: number;
+  local_payload: Record<string, unknown>;
+  server_data: Record<string, unknown>;
+  table: string;
+  timestamp: string;
+}
+
 const db = new Dexie('ListaCompraDB') as Dexie & {
   syncQueue: EntityTable<SyncOperation, 'id'>;
   deadLetterQueue: EntityTable<DeadLetterOperation, 'id'>;
   keyValueStore: EntityTable<KeyValueEntry, 'key'>;
+  conflictQueue: EntityTable<ConflictOperation, 'id'>;
 };
 
 db.version(1).stores({
@@ -40,6 +49,13 @@ db.version(3).stores({
   syncQueue: '++id, action, table, timestamp',
   deadLetterQueue: '++id, action, table, timestamp',
   keyValueStore: 'key'
+});
+
+db.version(4).stores({
+  syncQueue: '++id, action, table, timestamp',
+  deadLetterQueue: '++id, action, table, timestamp',
+  keyValueStore: 'key',
+  conflictQueue: '++id, table, timestamp'
 });
 
 export { db };

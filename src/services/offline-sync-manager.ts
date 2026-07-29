@@ -42,16 +42,17 @@ export function useOfflineSyncManager(isOnline: boolean) {
               data = await shoppingListRepository.syncUpdateSafe(payload, op.timestamp);
               
               if (data?.conflict) {
-                toast.error('Conflicto detectado en la nube', {
-                  description: `Tus cambios offline para un producto entraron en conflicto con los del servidor y fueron rechazados.`,
-                  duration: 6000,
-                });
-                
-                if (op.id) {
-                  await db.deadLetterQueue.add({
-                    ...op,
-                    errorReason: 'Conflicto: la versión del servidor es más reciente',
-                    failedAt: new Date().toISOString()
+                const serverItem = await shoppingListRepository.fetchItemById(payload.id);
+                if (serverItem && op.id) {
+                  await db.conflictQueue.add({
+                    local_payload: payload,
+                    server_data: serverItem,
+                    table: 'shopping_items',
+                    timestamp: new Date().toISOString()
+                  });
+                  toast.warning('Conflicto detectado', {
+                    description: 'Hay cambios contradictorios en un producto. Por favor resuélvelo.',
+                    duration: 6000,
                   });
                 }
               }

@@ -5,6 +5,7 @@ import { CloudOff, RefreshCw } from 'lucide-react';
 import { useCurrentProfile } from '@/hooks/use-current-profile';
 import { useOfflineSyncManager } from '@/services/offline-sync-manager';
 import { useRealtimeManager } from '@/services/realtime-manager';
+import { ConflictResolver } from '@/components/sync/ConflictResolver';
 
 interface SyncContextType {
   isOnline: boolean;
@@ -49,6 +50,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           )}
         </div>
       )}
+
+      <ConflictResolver />
     </SyncContext.Provider>
   );
 }

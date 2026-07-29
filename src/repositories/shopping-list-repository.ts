@@ -46,6 +46,16 @@ export class ShoppingListRepository {
     return data as ShoppingItem[];
   }
 
+  async fetchItemById(id: string): Promise<ShoppingItem | null> {
+    const { data, error } = await this.supabase
+      .from("shopping_items")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) return null;
+    return data as ShoppingItem;
+  }
+
   async fetchPurchaseHistory(householdId: string, options?: { limit?: number }): Promise<ShoppingItem[]> {
     if (!householdId) return [];
     
