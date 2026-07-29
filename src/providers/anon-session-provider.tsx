@@ -23,20 +23,34 @@ export function AnonSessionProvider({ children }: { children: React.ReactNode })
         }
 
         if (user && mounted) {
-          // Forzar que el usuario pertenezca al household global
-          // (Asume que RLS de Supabase permite al usuario actualizar su propio perfil)
-          const { data: updateData, error: updateError } = await supabase
-            .from('profiles')
-            .update({ household_id: GLOBAL_HOUSEHOLD_ID })
-            .eq('id', user.id)
-            .select();
-            
-          if (updateError) {
-            console.error("Error updating profile household_id:", updateError);
-          } else if (!updateData || updateData.length === 0) {
-            console.error("No se pudo actualizar el household_id. Posible bloqueo por RLS.");
-          } else {
-            console.log("Anon user household_id forced to:", GLOBAL_HOUSEHOLD_ID);
+          // Obtener el primer hogar existente en la base de datos para compartirlo entre todos
+          const { data: allHouseholds } = await supabase.from('households').select('*').limit(1);
+          let existingHousehold = allHouseholds && allHouseholds.length > 0 ? allHouseholds[0] : null;
+
+          if (!existingHousehold) {
+            const { data: newHousehold, error: createError } = await supabase
+              .from('households')
+              .insert([{ name: 'Mi Casa', created_by: user.id }])
+              .select()
+              .single();
+              
+            if (!createError && newHousehold) {
+              existingHousehold = newHousehold;
+            }
+          }
+
+          if (existingHousehold) {
+            // Forzar que el usuario pertenezca al household compartido
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ household_id: existingHousehold.id })
+              .eq('id', user.id);
+              
+            if (updateError) {
+              console.error("Error updating profile household_id:", updateError);
+            } else {
+              console.log("Anon user household_id forced to:", existingHousehold.id);
+            }
           }
         }
       } catch (error) {
