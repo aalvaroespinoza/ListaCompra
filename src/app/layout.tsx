@@ -25,7 +25,8 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover", // Expande al 100% de la pantalla (debajo del notch) en iOS
 };
 

@@ -20,7 +20,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             suppressHydrationWarning
             className={cn(
-              "flex h-12 w-full rounded-xl bg-surface border border-border px-4 py-2 text-base text-text-primary transition-colors",
+              "flex h-12 w-full rounded-xl bg-surface border border-border px-4 py-2 text-[16px] text-text-primary transition-colors",
               "placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
               "disabled:cursor-not-allowed disabled:opacity-50",
               icon && "pl-11", // Add padding if icon exists

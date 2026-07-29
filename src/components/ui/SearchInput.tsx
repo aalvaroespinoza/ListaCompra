@@ -27,7 +27,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            "flex h-12 w-full rounded-full bg-border/50 px-11 py-2 text-base text-text-primary transition-colors",
+            "flex h-12 w-full rounded-full bg-border/50 px-11 py-2 text-[16px] text-text-primary transition-colors",
             "placeholder:text-text-tertiary focus:outline-none focus:bg-surface focus:ring-2 focus:ring-primary/50",
             /* Hide default webkit clear button */
             "[&::-webkit-search-cancel-button]:hidden",
