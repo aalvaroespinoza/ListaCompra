@@ -75,6 +75,7 @@ export function SmartInputBar({ frequentProducts, pendingItems, onAttemptAdd, on
         
         <form onSubmit={handleSubmit} className="flex-1 relative">
           <input 
+            data-testid="smart-input"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Escribe un producto..."

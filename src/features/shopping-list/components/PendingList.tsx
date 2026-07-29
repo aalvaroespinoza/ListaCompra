@@ -10,11 +10,12 @@ interface PendingListProps {
   availableProfiles: Profile[];
   onUpdate: (id: string, updates: Partial<ShoppingItem>) => void;
   onDelete: (id: string) => void;
+  'data-testid'?: string;
 }
 
-export function PendingList({ items, availableProfiles, onUpdate, onDelete }: PendingListProps) {
+export function PendingList({ items, availableProfiles, onUpdate, onDelete, 'data-testid': testId }: PendingListProps) {
   return (
-    <div>
+    <div data-testid={testId}>
       <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4 px-2">Para comprar hoy ({items.length})</h2>
       {items.length === 0 ? (
         <div className="bg-surface/50 border border-dashed border-border rounded-2xl p-6 text-center mx-2">

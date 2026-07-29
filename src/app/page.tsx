@@ -43,9 +43,10 @@ export default function HomeWireframe() {
             <p className="text-text-secondary text-lg">Selecciona tu perfil para continuar</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 place-items-center">
+          <div data-testid="profile-selector" className="grid grid-cols-2 gap-x-6 gap-y-10 place-items-center">
             {availableProfiles.map((profile, idx) => (
               <motion.button
+                data-testid="profile-btn"
                 key={profile.id}
                 onClick={() => changeProfile(profile)}
                 initial={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -94,7 +95,7 @@ export default function HomeWireframe() {
     <PageContainer withBottomNav={true}>
       <Header 
         avatar={
-          <div className="bg-primary/10 rounded-full p-1 border border-border/50 shadow-sm cursor-pointer" onClick={clearProfile}>
+          <div data-testid="profile-avatar-btn" className="bg-primary/10 rounded-full p-1 border border-border/50 shadow-sm cursor-pointer" onClick={clearProfile}>
             <Avatar 
               fallback={currentProfile.display_name} 
               size="md"
@@ -103,7 +104,7 @@ export default function HomeWireframe() {
             />
           </div>
         }
-        title={`¡Hola, ${currentProfile.display_name.split(' ')[0]}!`} 
+        title={<span data-testid="header-title">{`¡Hola, ${currentProfile.display_name.split(' ')[0]}!`}</span>} 
         subtitle={today}
         rightAction={
           <div className="flex items-center gap-2">
@@ -138,7 +139,7 @@ export default function HomeWireframe() {
                     description: "Recargando aplicación..."
                   });
                   setTimeout(() => window.location.reload(), 1500);
-                } catch (e) {
+                } catch (_e) {
                   toast.error("Error al vaciar DB local");
                 }
               }}

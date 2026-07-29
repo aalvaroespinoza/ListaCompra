@@ -10,13 +10,14 @@ interface CompletedListProps {
   availableProfiles: Profile[];
   onUpdate: (id: string, updates: Partial<ShoppingItem>) => void;
   onDelete: (id: string) => void;
+  'data-testid'?: string;
 }
 
-export function CompletedList({ items, availableProfiles, onUpdate, onDelete }: CompletedListProps) {
+export function CompletedList({ items, availableProfiles, onUpdate, onDelete, 'data-testid': testId }: CompletedListProps) {
   if (items.length === 0) return null;
 
   return (
-    <div>
+    <div data-testid={testId}>
       <h2 className="text-[15px] font-bold text-text-tertiary uppercase tracking-wider mb-4 px-2">Comprados ({items.length})</h2>
       <AnimatePresence initial={false}>
         {items.map(item => (

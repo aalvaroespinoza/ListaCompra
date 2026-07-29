@@ -41,7 +41,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       
       {/* Indicador Visual Flotante */}
       {(!isOnline || pendingCount > 0) && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-surface shadow-lg border border-border/50 rounded-full px-4 py-2 text-sm font-medium animate-in fade-in slide-in-from-bottom-4">
+        <div data-testid="offline-indicator" className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-surface shadow-lg border border-border/50 rounded-full px-4 py-2 text-sm font-medium animate-in fade-in slide-in-from-bottom-4">
           {!isOnline ? (
             <><CloudOff size={16} className="text-orange-500" /> Sin conexión ({pendingCount} pendientes)</>
           ) : (

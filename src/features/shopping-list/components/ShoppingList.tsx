@@ -103,7 +103,7 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
   }
 
   return (
-    <div className="pb-32 flex flex-col min-h-full">
+    <div data-testid="shopping-list" className="pb-32 flex flex-col min-h-full">
       <StatsRow 
         pendingCount={pendingItems.length} 
         completedCount={completedItems.length} 
@@ -116,12 +116,14 @@ export function ShoppingList({ householdId, userId }: ShoppingListProps) {
           availableProfiles={availableProfiles} 
           onUpdate={handleUpdate} 
           onDelete={handleDelete} 
+          data-testid="pending-list"
         />
         <CompletedList 
           items={completedItems} 
           availableProfiles={availableProfiles} 
           onUpdate={handleUpdate} 
           onDelete={handleDelete} 
+          data-testid="completed-list"
         />
       </div>
 

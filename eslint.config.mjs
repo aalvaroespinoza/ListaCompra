@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Playwright E2E tests — excluded from Next.js/React lint rules
+    // because Playwright uses APIs (fixture 'use' callbacks, etc.) that
+    // look like React hooks to the linter but are not.
+    "tests/**",
   ]),
 ]);
 

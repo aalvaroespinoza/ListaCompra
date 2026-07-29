@@ -130,6 +130,7 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
           <div className="shrink-0 flex items-center gap-3">
             {item.status === 'completed' ? (
               <div 
+                data-testid="item-checkbox"
                 onClick={handleComplete}
                 className="w-6 h-6 rounded-full bg-success flex items-center justify-center cursor-pointer transition-transform active:scale-95 shadow-sm"
               >
@@ -137,6 +138,7 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
               </div>
             ) : (
               <div 
+                data-testid="item-checkbox"
                 onClick={handleComplete}
                 className="w-6 h-6 rounded-full border-2 border-border cursor-pointer transition-transform active:scale-95 hover:border-primary/50"
               />
