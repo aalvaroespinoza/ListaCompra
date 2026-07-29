@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #8553F4; /* Violeta/Índigo vibrante del FAB y tab activo */
-  --color-primary-hover: #723DE8;
-  --color-primary-active: #5E2BC7;
-  --color-primary-disabled: #D1C0FB;
+  --color-primary: #0F6E56; /* Teal acento del FAB y tab activo */
+  --color-primary-hover: #085041;
+  --color-primary-active: #04342C;
+  --color-primary-disabled: #9FE1CB;
   
   --color-secondary: #F6A845; /* Naranja/dorado del KPI Total */
   --color-secondary-hover: #E39433;
@@ -55,8 +55,8 @@
 }
 
 :root {
-  --background: #F9FAFB; /* Blanco/Gris muy claro */
-  --foreground: #111827; /* Texto principal oscuro */
+  --background: #F1EFE8; /* Gris cálido/beige */
+  --foreground: #2C2C2A; /* Gris oscuro casi negro */
   
   --surface: #FFFFFF;
   --surface-hover: #F3F4F6;
@@ -65,7 +65,7 @@
   --border: #E5E7EB;
   --border-hover: #D1D5DB;
   
-  --text-primary: #111827;
+  --text-primary: #2C2C2A;
   --text-secondary: #4B5563;
   --text-tertiary: #9CA3AF;
 }
