@@ -14,9 +14,11 @@ import { db } from "@/lib/db";
 import { toast } from "sonner";
 import { HistoryList } from "@/features/statistics/components/HistoryList";
 import { FrequentGrid } from "@/features/shopping-list/components/FrequentGrid";
+import { AvatarPicker } from "@/components/shared/AvatarPicker";
 
 export default function HomeWireframe() {
   const [activeTab, setActiveTab] = useState("list");
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const { currentProfile, isLoading: isProfileLoading, changeProfile, clearProfile, availableProfiles } = useCurrentProfile();
 
   // Loading state 
@@ -67,6 +69,7 @@ export default function HomeWireframe() {
                   style={{ backgroundColor: `${profile.color}20` }}
                 >
                   <Avatar 
+                    src={profile.avatar_url || undefined}
                     fallback={profile.display_name} 
                     size="lg"
                     className="h-20 w-20 text-2xl shadow-sm transition-transform duration-300 group-hover:scale-[1.02]"
@@ -97,8 +100,9 @@ export default function HomeWireframe() {
     <PageContainer withBottomNav={true}>
       <Header 
         avatar={
-          <div data-testid="profile-avatar-btn" className="bg-primary/10 rounded-full p-1 border border-border/50 shadow-sm cursor-pointer" onClick={clearProfile}>
+          <div data-testid="profile-avatar-btn" className="bg-primary/10 rounded-full p-1 border border-border/50 shadow-sm cursor-pointer" onClick={() => setShowAvatarPicker(!showAvatarPicker)}>
             <Avatar 
+              src={currentProfile.avatar_url || undefined}
               fallback={currentProfile.display_name} 
               size="md"
               style={{ backgroundColor: currentProfile.color, color: '#fff' }}
@@ -120,15 +124,33 @@ export default function HomeWireframe() {
         }
       />
 
+      {showAvatarPicker && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowAvatarPicker(false)}>
+          <div onClick={e => e.stopPropagation()} className="w-full max-w-sm">
+            <AvatarPicker onClose={() => setShowAvatarPicker(false)} />
+          </div>
+        </div>
+      )}
+
       {activeTab === "list" ? (
         <ShoppingList 
           householdId={currentProfile.household_id} 
           userId={currentProfile.id} 
         />
       ) : activeTab === "settings" ? (
-        <div className="flex flex-col items-center justify-center p-6 space-y-6">
-          <div className="bg-surface rounded-3xl p-6 shadow-sm border border-border/50 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4 text-text-primary">Zona de Peligro</h3>
+        <div className="flex flex-col items-center justify-center p-6 space-y-6 pb-24">
+          <div className="w-full max-w-md">
+            <AvatarPicker />
+          </div>
+          <div className="bg-surface rounded-3xl p-6 shadow-sm border border-border/50 w-full max-w-md mt-6">
+            <h3 className="text-xl font-bold mb-4 text-text-primary">Sesión y Datos</h3>
+            <button 
+              onClick={clearProfile}
+              className="w-full py-3 bg-surface-hover text-text-primary rounded-xl font-medium transition-colors mb-4 border border-border"
+            >
+              Cambiar de Perfil
+            </button>
+            <h3 className="text-xl font-bold mb-4 text-text-primary mt-6">Zona de Peligro</h3>
             <p className="text-sm text-text-secondary mb-6">
               Esto borrará tu caché local offline y los ítems pendientes de sincronizar.
             </p>

@@ -169,6 +169,7 @@ export const ShoppingItem = React.memo(function ShoppingItem({ item, onUpdate, o
               <div className="shrink-0 flex items-center gap-2">
                 <span className="text-xs text-text-tertiary font-medium">{displayDate}</span>
                 <Avatar 
+                  src={buyer.avatar_url || undefined}
                   fallback={buyer.display_name} 
                   size="sm" 
                   className="w-7 h-7 shadow-sm"
