@@ -27,7 +27,7 @@ export function AvatarPicker({ onClose }: { onClose?: () => void }) {
       
       toast.success("Avatar actualizado");
       if (onClose) onClose();
-    } catch (e) {
+    } catch {
       toast.error("Error al actualizar el avatar");
     }
   };

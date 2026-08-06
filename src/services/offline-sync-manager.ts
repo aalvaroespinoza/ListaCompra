@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/db';
 import { shoppingListRepository } from '@/repositories/shopping-list-repository';
-import { profileRepository } from '@/repositories/profile-repository';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/types/supabase';
@@ -39,7 +38,7 @@ export function useOfflineSyncManager(isOnline: boolean) {
               const payload = op.payload as Database['public']['Tables']['shopping_items']['Insert'];
               await shoppingListRepository.syncInsert(payload);
             } else if (op.action === 'update' && op.table === 'shopping_items') {
-              const payload = op.payload as any; // Allow all fields like purchased_at and deleted_at
+              const payload = op.payload as Database['public']['Tables']['shopping_items']['Update'] & { id: string, last_known_updated_at?: string };
               data = await shoppingListRepository.syncUpdateSafe(payload, op.timestamp);
               
               if (data?.conflict) {
@@ -58,7 +57,7 @@ export function useOfflineSyncManager(isOnline: boolean) {
                 }
               }
             } else if (op.action === 'update' && op.table === 'profiles') {
-              const payload = op.payload as any;
+              const payload = op.payload as Database['public']['Tables']['profiles']['Update'] & { id: string };
               if (payload.id && payload.avatar_url) {
                 // We directly reuse the update method since it works the same, or we could just use supabase directly here
                 // since profileRepository.updateAvatar calls executeSafe which might enqueue again if offline, 
@@ -69,7 +68,8 @@ export function useOfflineSyncManager(isOnline: boolean) {
                 // To keep it simple, we just use supabase directly, or we can use the repository if we expose supabase.
                 const { getSupabaseBrowserClient } = await import('@/lib/supabase/client');
                 const supabase = getSupabaseBrowserClient();
-                const { error } = await supabase.from('profiles').update(payload).eq('id', payload.id);
+                const { id, ...updateData } = payload;
+                const { error } = await supabase.from('profiles').update(updateData).eq('id', id);
                 if (error) throw error;
               }
             }

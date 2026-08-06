@@ -188,7 +188,7 @@ export class ShoppingListRepository {
     if (error) throw error;
   }
 
-  async syncUpdateSafe(payload: any, timestamp: string) {
+  async syncUpdateSafe(payload: Database['public']['Tables']['shopping_items']['Update'] & { id: string, last_known_updated_at?: string }, timestamp: string) {
     const { id, quantity, status, last_known_updated_at, ...rest } = payload;
     let rpcResult = null;
 

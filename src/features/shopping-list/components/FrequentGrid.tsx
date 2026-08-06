@@ -43,7 +43,7 @@ export function FrequentGrid({ householdId, userId }: FrequentGridProps) {
       await shoppingListRepository.deleteHistoryByName(householdId, product.name);
       toast.success(`${product.name} eliminado de frecuentes`);
       queryClient.invalidateQueries({ queryKey: ['frequent_products'] });
-    } catch (err) {
+    } catch {
       toast.error("Error al eliminar. Revisa tu conexión.");
     }
   };
@@ -62,7 +62,7 @@ export function FrequentGrid({ householdId, userId }: FrequentGridProps) {
         status: "pending"
       });
       toast.success(`Agregado a la lista`, { description: product.name });
-    } catch (e) {
+    } catch {
       toast.error("Error al agregar el producto");
     }
   };

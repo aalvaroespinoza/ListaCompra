@@ -32,7 +32,7 @@ export function ConflictResolver() {
       }
       toast.success("Conflicto resuelto (tu versión)");
       queryClient.invalidateQueries({ queryKey: ['shopping_list'] });
-    } catch (e) {
+    } catch {
       toast.error("Error al resolver el conflicto");
     }
   };
@@ -44,7 +44,7 @@ export function ConflictResolver() {
       }
       toast.info("Conflicto resuelto (versión del servidor)");
       queryClient.invalidateQueries({ queryKey: ['shopping_list'] });
-    } catch (e) {
+    } catch {
       toast.error("Error al resolver el conflicto");
     }
   };

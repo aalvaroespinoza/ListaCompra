@@ -18,11 +18,14 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false, // Evitar que convierta números de cantidad en enlaces
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
   }
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#0F6E56",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

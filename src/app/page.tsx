@@ -153,7 +153,7 @@ export default function HomeWireframe() {
                     description: "Recargando aplicación..."
                   });
                   setTimeout(() => window.location.reload(), 1500);
-                } catch (_e) {
+                } catch {
                   toast.error("Error al vaciar DB local");
                 }
               }}

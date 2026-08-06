@@ -40,7 +40,7 @@ export function HistoryList({ householdId }: HistoryListProps) {
       toast.success(`${name} eliminado del historial`);
       queryClient.invalidateQueries({ queryKey: ['purchase-history'] });
       queryClient.invalidateQueries({ queryKey: ['frequent_products'] });
-    } catch (err) {
+    } catch {
       toast.error("Error al eliminar. Revisa tu conexión.");
     }
   };
