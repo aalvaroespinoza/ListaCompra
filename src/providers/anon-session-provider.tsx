@@ -30,7 +30,7 @@ export function AnonSessionProvider({ children }: { children: React.ReactNode })
           if (!existingHousehold) {
             const { data: newHousehold, error: createError } = await supabase
               .from('households')
-              .insert([{ name: 'Mi Casa', created_by: user.id }])
+              .insert([{ name: 'Mi Casa' }])
               .select()
               .single();
               
